@@ -4,6 +4,7 @@ const useStore = create((set) => ({
   entries: [],
   modifiedEntries: [],
   savedReports: [], // Almacenar reportes con ID único
+  selectedTime: null, // Almacenar la selección del tiempo
 
   addEntry: (entry) => {
     set((state) => {
@@ -62,19 +63,24 @@ const useStore = create((set) => ({
       return { modifiedEntries: updatedModifiedEntries };
     }),
 
+  setSelectedTime: (time) => set(() => ({ selectedTime: time })),
+
   saveReport: () =>
     set((state) => {
       if (state.modifiedEntries.length > 0) {
         const newReport = {
           id: `REP-${Date.now()}`, // ID único para el reporte
           products: [...state.modifiedEntries],
+          selectedTime: state.selectedTime, // Guardar el tiempo seleccionado en el reporte
         };
         return {
           savedReports: [...state.savedReports, newReport],
           modifiedEntries: [], // Vaciar modifiedEntries
+          selectedTime: null, // Resetear selección de tiempo
         };
       }
       return {};
     }),
 }));
+
 export default useStore;

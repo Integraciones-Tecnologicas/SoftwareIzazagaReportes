@@ -1,9 +1,6 @@
 import { useForm } from "react-hook-form";
 import ErrorMessage from './ErrorMessage';
 import useStore from "../store";
-import { CiDeliveryTruck } from "react-icons/ci";
-import { PiTruckTrailer } from "react-icons/pi";
-import { FaTruckLoading } from "react-icons/fa";
 
 const Appointment = () => {
     const savedReports = useStore((state) => state.savedReports);
@@ -49,36 +46,6 @@ const Appointment = () => {
                 className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm bg-gray-100"
                 />
             </div>
-
-            <div>
-                <label className="block text-sm font-semibold uppercase mb-2">
-                    Selecciona el tipo de vehículo y duración:
-                </label>
-                <div className="flex items-center justify-between">
-                    <button
-                    type="button"
-                    
-                    >
-                    <FaTruckLoading size={40} />
-                    <span>Diablito - 30 min</span>
-                    </button>
-                    <button
-                    type="button"
-                    
-                    >
-                    <CiDeliveryTruck size={40} />
-                    <span>Camión - 1 hora</span>
-                    </button>
-                    <button
-                    type="button"
-                    
-                    >
-                    <PiTruckTrailer size={40} />
-                    <span>Trailer - 2 horas</span>
-                    </button>
-                </div>
-            </div>
-
 
             <input
                 type="submit"
