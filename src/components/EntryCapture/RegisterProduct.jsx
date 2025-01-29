@@ -8,6 +8,7 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const addEntry = useStore((state) => state.addEntry); // Obtenemos la función para agregar entradas
   const updateEntry = useStore((state) => state.addEntry); // Usa la misma función de store para actualización
+  const entries = useStore((state) => state.entries); // Obtener la lista de productos
 
   // Si initialData está presente, reseteamos el formulario con los datos de la entrada
   useEffect(() => {
@@ -17,14 +18,21 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
   }, [initialData, reset]);
 
   const registerProduct = (data) => {
+    const existingEntry = entries.find((entry) => entry.sku === data.sku);
+  
+    if (!initialData && existingEntry) {
+      toast.error("El SKU ya existe. Ingresa un SKU diferente.");
+      return;
+    }
+  
     if (initialData) {
-      toast.success('Producto actualizado correctamente')
+      toast.success("Producto actualizado correctamente");
       updateEntry(data);
     } else {
-      toast.success('Producto creado correctamente')
+      toast.success("Producto creado correctamente");
       addEntry(data);
     }
-
+  
     reset();
     toggleModal();
   };

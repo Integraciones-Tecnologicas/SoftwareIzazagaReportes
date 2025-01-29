@@ -15,7 +15,7 @@ export const AppRouter = () => {
                 {
                     status === 'admin'
                         ? <Route path="/*" element={<AdminRoutes />} /> :
-                    (status === 'authenticated'
+                    (status === 'locatario'
                         ? <Route path="/*" element={<PrivateRoutes />} /> 
                         : <Route path="login" element={<LoginPage />} />)
                 }
