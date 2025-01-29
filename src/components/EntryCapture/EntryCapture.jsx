@@ -39,40 +39,40 @@ const EntryCapture = () => {
         <p className="text-center text-gray-500">No hay entradas registradas.</p>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border">
-              <thead className="bg-gray-200">
+          <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <table className="min-w-full bg-white shadow-lg table-auto border-collapse">
+              <thead className="bg-gray-200 text-gray-600 text-sm uppercase tracking-wider">
                 <tr>
-                  <th className="px-4 py-2 border">Descripción</th>
-                  <th className="px-4 py-2 border">SKU</th>
-                  <th className="px-4 py-2 border">Costo</th>
-                  <th className="px-4 py-2 border">Precio</th>
-                  <th className="px-4 py-2 border">Cantidad</th>
-                  <th className="px-4 py-2 border">Línea</th>
-                  <th className="px-4 py-2 border">Subfamilia</th>
-                  <th className="px-4 py-2 border">Piratería</th>
-                  <th className="px-4 py-2 border">Imagen</th>
-                  <th className="px-4 py-2 border">Observaciones</th>
-                  <th className="px-4 py-2 border">Acciones</th>
+                  <th className="px-4 py-3 border-b">Descripción</th>
+                  <th className="px-4 py-3 border-b">SKU</th>
+                  <th className="px-4 py-3 border-b">Costo</th>
+                  <th className="px-4 py-3 border-b">Precio</th>
+                  <th className="px-4 py-3 border-b">Cantidad</th>
+                  <th className="px-4 py-3 border-b">Línea</th>
+                  <th className="px-4 py-3 border-b">Subfamilia</th>
+                  <th className="px-4 py-3 border-b">Piratería</th>
+                  <th className="px-4 py-3 border-b">Imagen</th>
+                  <th className="px-4 py-3 border-b">Observaciones</th>
+                  <th className="px-4 py-3 border-b">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {modifiedEntries.map((entry, index) => (
-                  <tr key={index} className="odd:bg-white even:bg-gray-100">
-                    <td className="px-4 py-2 border">{entry.description}</td>
-                    <td className="px-4 py-2 border">{entry.sku || "N/A"}</td>
-                    <td className="px-4 py-2 border">{entry.cost}</td>
-                    <td className="px-4 py-2 border">{entry.price}</td>
-                    <td className="px-4 py-2 border">{entry.quantity || "N/A"}</td>
-                    <td className="px-4 py-2 border">{entry.line}</td>
-                    <td className="px-4 py-2 border">{entry.subfamily}</td>
-                    <td className="px-4 py-2 border">{entry.piracy ? "Sí" : "No"}</td>
-                    <td className="px-4 py-2 border">{entry.images}</td>
-                    <td className="px-4 py-2 border">{entry.observations || "N/A"}</td>
-                    <td className="px-4 py-2 border text-center">
+                  <tr key={index} className="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 border-b">{entry.description}</td>
+                    <td className="px-4 py-3 border-b text-center">{entry.sku || "N/A"}</td>
+                    <td className="px-4 py-3 border-b text-center">{entry.cost}</td>
+                    <td className="px-4 py-3 border-b text-center">{entry.price}</td>
+                    <td className="px-4 py-3 border-b text-center">{entry.quantity || "N/A"}</td>
+                    <td className="px-4 py-3 border-b">{entry.line}</td>
+                    <td className="px-4 py-3 border-b">{entry.subfamily}</td>
+                    <td className="px-4 py-3 border-b">{entry.piracy ? "Sí" : "No"}</td>
+                    <td className="px-4 py-3 border-b">{entry.images}</td>
+                    <td className="px-4 py-3 border-b">{entry.observations || "N/A"}</td>
+                    <td className="px-4 py-3 border-b text-center">
                       <button
                         onClick={() => useStore.getState().removeModifiedEntryById(entry.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 font-semibold"
                       >
                         Eliminar
                       </button>
@@ -82,6 +82,7 @@ const EntryCapture = () => {
               </tbody>
             </table>
           </div>
+
 
           <div className="mt-4 py-4">
             <label className="block font-semibold text-gray-700 mb-2">

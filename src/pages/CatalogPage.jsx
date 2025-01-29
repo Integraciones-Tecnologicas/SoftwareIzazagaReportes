@@ -27,38 +27,39 @@ const CatalogPage = () => {
             {entries.length === 0 ? (
                 <p className="text-center text-gray-500">No hay productos registrados.</p>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white border">
-                        <thead className="bg-gray-200">
-                        <tr>
-                            <th className="px-4 py-2 border">Descripción</th>
-                            <th className="px-4 py-2 border">SKU</th>
-                            <th className="px-4 py-2 border">Costo</th>
-                            <th className="px-4 py-2 border">Precio</th>
-                            <th className="px-4 py-2 border">Línea</th>
-                            <th className="px-4 py-2 border">Subfamilia</th>
-                            <th className="px-4 py-2 border">Piratería</th>
-                            <th className="px-4 py-2 border">Imagen</th>
-                            <th className="px-4 py-2 border">Observaciones</th>
+                <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+                  <table className="min-w-full bg-white shadow-lg table-auto border-collapse">
+                    <thead className="bg-gray-200 text-gray-600 tracking-wider">
+                      <tr>
+                        <th className="px-4 py-3 border-b">Descripción</th>
+                        <th className="px-4 py-3 border-b">SKU</th>
+                        <th className="px-4 py-3 border-b">Costo</th>
+                        <th className="px-4 py-3 border-b">Precio</th>
+                        <th className="px-4 py-3 border-b">Línea</th>
+                        <th className="px-4 py-3 border-b">Subfamilia</th>
+                        <th className="px-4 py-3 border-b">Piratería</th>
+                        <th className="px-4 py-3 border-b">Imagen</th>
+                        <th className="px-4 py-3 border-b">Observaciones</th>
+                      </tr>
+                    </thead>
+                
+                    <tbody>
+                      {entries.map((entry, index) => (
+                        <tr key={index} className="odd:bg-white even:bg-gray-100">
+                          <td className="px-4 py-3 border-b">{entry.description}</td>
+                          <td className="px-4 py-3 border-b text-center">{entry.sku || "N/A"}</td>
+                          <td className="px-4 py-3 border-b text-center">{entry.cost}</td>
+                          <td className="px-4 py-3 border-b text-center">{entry.price}</td>
+                          <td className="px-4 py-3 border-b">{entry.line}</td>
+                          <td className="px-4 py-3 border-b">{entry.subfamily}</td>
+                          <td className="px-4 py-3 border-b">{entry.piracy ? "Sí" : "No"}</td>
+                          <td className="px-4 py-3 border-b">{entry.images}</td>
+                          <td className="px-4 py-3 border-b">{entry.observations || "N/A"}</td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        {entries.map((entry, index) => (
-                            <tr key={index} className="odd:bg-white even:bg-gray-100">
-                                <td className="px-4 py-2 border">{entry.description}</td>
-                                <td className="px-4 py-2 border">{entry.sku || "N/A"}</td>
-                                <td className="px-4 py-2 border">{entry.cost}</td>
-                                <td className="px-4 py-2 border">{entry.price}</td>
-                                <td className="px-4 py-2 border">{entry.line}</td>
-                                <td className="px-4 py-2 border">{entry.subfamily}</td>
-                                <td className="px-4 py-2 border">{entry.piracy ? "Sí" : "No"}</td>
-                                <td className="px-4 py-2 border">{entry.images}</td>
-                                <td className="px-4 py-2 border">{entry.observations || "N/A"}</td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>            
             )}
       </div>
 

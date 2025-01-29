@@ -6,6 +6,7 @@ const useStore = create((set, get) => ({
   savedReports: [], // Almacenar reportes con ID único
   selectedTime: null, // Almacenar la selección del tiempo
   appointments: [], // Almacenar citas reservadas
+  usedFolios: [], // Lista de folios utilizados
 
   addEntry: (entry) => {
     set((state) => {
@@ -56,7 +57,7 @@ const useStore = create((set, get) => ({
       const newReport = {
         id: `REP-${Date.now()}`,
         products: [...state.modifiedEntries],
-        selectedTime: state.selectedTime, // Guardar duración
+        selectedTime: state.selectedTime,
       };
       return {
         savedReports: [...state.savedReports, newReport],
@@ -70,7 +71,12 @@ const useStore = create((set, get) => ({
   addAppointment: (appointment) => {
     set((state) => ({
       appointments: [...state.appointments, appointment],
+      usedFolios: [...state.usedFolios, appointment.folio], // Marcar el folio como usado
     }));
+  },
+
+  isFolioUsed: (folio) => {
+    return get().usedFolios.includes(folio);
   },
 
   isTimeAvailable: (date, time, duration) => {

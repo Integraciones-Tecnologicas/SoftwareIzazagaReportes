@@ -5,11 +5,13 @@ import useStore from "../store/store";
 
 const Appointment = () => {
     const savedReports = useStore((state) => state.savedReports);
-    const latestReport = savedReports[savedReports.length - 1];
-
-    const folio = latestReport ? latestReport.id : "Sin Registro...";
-    const duration = latestReport ? latestReport.selectedTime : "No definido"; // Recuperar duración
-
+    const [latestReport, setLatestReport] = useState(
+        savedReports.length > 0 ? savedReports[savedReports.length - 1] : null
+    );
+    
+    const folio = latestReport ? latestReport.id : "";
+    const duration = latestReport ? latestReport.selectedTime : "No definido";
+    
     const addAppointment = useStore((state) => state.addAppointment);
     const isTimeAvailable = useStore((state) => state.isTimeAvailable);
   
@@ -55,9 +57,10 @@ const Appointment = () => {
     const [selectedDate, setSelectedDate] = useState("");
     const selectedDuration = latestReport?.selectedTime || "30 min"; // Duración por defecto
     const availableTimes = getAvailableTimes(selectedDate, selectedDuration); // Pasar ambos valores
-
-
     const [errorMessage, setErrorMessage] = useState(null)
+
+    const isFolioUsed = useStore((state) => state.isFolioUsed);
+
     const registerAppointment = (data) => {
         const { date, time } = data;
 
@@ -71,10 +74,8 @@ const Appointment = () => {
             return;
         }
 
-        const [hours, minutes] = time.split(":").map(Number);
-
-        if (hours < 10 || hours >= 18) {
-            setErrorMessage("Las citas solo pueden agendarse entre las 10:00 AM y las 6:00 PM.");
+        if (isFolioUsed(folio)) {
+            setErrorMessage("Este folio ya ha sido utilizado. Por favor, genera un nuevo reporte.");
             return;
         }
 
@@ -83,12 +84,15 @@ const Appointment = () => {
             return;
         }
 
-        setErrorMessage('Cita registrada con éxito.'); // Si todo va bien, eliminamos el mensaje de error
+        setErrorMessage('Cita registrada con éxito.');
         addAppointment({ date, time, duration, folio });
+        setLatestReport(null); 
         reset();
-
-        // alert("Cita registrada con éxito.");
     };
+
+    
+    let hoy = new Date();
+    console.log( hoy );
 
     return (
         
@@ -175,13 +179,15 @@ const Appointment = () => {
                     />
                 </div>
 
-                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-                
-                <input
-                    type="submit"
-                    className="w-full bg-indigo-500 mt-3 p-3 text-white uppercase font-bold hover:bg-indigo-700"
-                    value='Agendar Cita'
-                />
+                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}                              
+
+                    <input
+                        type="submit"
+                        className={`w-full mt-3 p-3 text-white uppercase font-bold ${folio ? "bg-indigo-500 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"}`}
+                        value='Agendar Cita'
+                        disabled={!folio}
+                    />
+
             </form>
         </div>
     );
