@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFile, faEdit } from "@fortawesome/free-solid-svg-icons";
-import useStore from "../../store"; // Importamos el store
+import useStore from "../../store/store"; // Importamos el store
 import RegisterProduct from "./RegisterProduct";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -103,7 +103,7 @@ const SearchHeader = ({ toggleModal }) => {
           id="sku"
           type="text"
           placeholder="Ejemplo: 12345"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.sku}
           onChange={handleInputChange}
         />
@@ -136,8 +136,9 @@ const SearchHeader = ({ toggleModal }) => {
         <input
           id="description"
           type="text"
+          readOnly
           placeholder="Ejemplo: Producto X"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.description}
           onChange={handleInputChange}
         />
@@ -149,10 +150,11 @@ const SearchHeader = ({ toggleModal }) => {
         </label>
         <input
           id="cost"
-          type="number"
+          type="text"
+          readOnly
           min={0}
           placeholder="Ejemplo: 100"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.cost}
           onChange={handleInputChange}
         />
@@ -163,10 +165,11 @@ const SearchHeader = ({ toggleModal }) => {
         </label>
         <input
           id="price"
-          type="number"
+          type="text"
+          readOnly
           min={0}
           placeholder="Ejemplo: 150"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.price}
           onChange={handleInputChange}
         />
@@ -181,7 +184,7 @@ const SearchHeader = ({ toggleModal }) => {
           type="number"
           min="0"
           placeholder="Ejemplo: 10"
-          className="w-full border rounded-lg px-4 py-2"
+          className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.quantity}
           onChange={handleQuantityChange}
         />

@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faHome, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 
 const ReviewEntry = () => {
     return (
@@ -14,14 +14,6 @@ const ReviewEntry = () => {
               type="text"
               className="border border-gray-300 p-2 w-full max-w-xs"
             />
-          </div>
-          <div className="flex space-x-4">
-            <button className="p-2 bg-gray-200 border border-gray-400 rounded">
-              <FontAwesomeIcon icon={faSearch} />
-            </button>
-            <button className="p-2 bg-gray-200 border border-gray-400 rounded">
-              <FontAwesomeIcon icon={faHome} />
-            </button>
           </div>
         </div>
   

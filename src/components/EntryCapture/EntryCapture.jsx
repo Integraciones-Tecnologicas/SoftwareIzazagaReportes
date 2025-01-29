@@ -1,4 +1,4 @@
-import useStore from "../../store";
+import useStore from "../../store/store";
 import { useNavigate } from "react-router-dom";
 import { FaCalendarAlt } from "react-icons/fa"; // Icono de calendario
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { ToastContainer } from "react-toastify";
 import { CiDeliveryTruck } from "react-icons/ci";
 import { PiTruckTrailer } from "react-icons/pi";
 import { FaTruckLoading } from "react-icons/fa";
+import ErrorMessage from "../ErrorMessage";
 
 const EntryCapture = () => {
   const navigate = useNavigate();
@@ -90,7 +91,7 @@ const EntryCapture = () => {
               <button
                 type="button"
                 onClick={() => setSelectedTime("30 min")}
-                className={`p-4 rounded-lg ${selectedTime === "30 min" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                className={`p-4 rounded-lg ${selectedTime === "30 min" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-blue-500"}`}
               >
                 <FaTruckLoading size={40} />
                 <span>Diablito - 30 min</span>
@@ -98,7 +99,7 @@ const EntryCapture = () => {
               <button
                 type="button"
                 onClick={() => setSelectedTime("1 hora")}
-                className={`p-4 rounded-lg ${selectedTime === "1 hora" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                className={`p-4 rounded-lg ${selectedTime === "1 hora" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-blue-500"}`}
               >
                 <CiDeliveryTruck size={40} />
                 <span>Camión - 1 hora</span>
@@ -106,24 +107,32 @@ const EntryCapture = () => {
               <button
                 type="button"
                 onClick={() => setSelectedTime("2 horas")}
-                className={`p-4 rounded-lg ${selectedTime === "2 horas" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                className={`p-4 rounded-lg ${selectedTime === "2 horas" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-blue-500"}`}
               >
                 <PiTruckTrailer size={40} />
                 <span>Trailer - 2 horas</span>
               </button>
             </div>
           </div>
-        </>
+        
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleScheduleAppointment}
+              disabled={!selectedTime} // Deshabilita si no se ha seleccionado un tiempo
+              className={`flex items-center justify-center font-semibold uppercase py-2 px-4 rounded-lg shadow-lg mx-auto transition-all
+                ${selectedTime ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-gray-400 text-gray-200 cursor-not-allowed"}`}
+            >
+              <FaCalendarAlt className="mr-2" /> Terminar y Agendar Cita
+            </button>
+            
+            {!selectedTime && (
+              <ErrorMessage>Debes seleccionar un tipo de vehículo y duración.</ErrorMessage>
+            )}
+          </div>
+
+      </>
       )}
 
-      <div className="mt-6 text-center">
-        <button
-          onClick={handleScheduleAppointment}
-          className="flex items-center justify-center bg-indigo-600 font-semibold uppercase text-white py-2 px-4 rounded-lg hover:bg-indigo-700 shadow-lg mx-auto"
-        >
-          <FaCalendarAlt className="mr-2" /> Terminar y Agendar Cita
-        </button>
-      </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">

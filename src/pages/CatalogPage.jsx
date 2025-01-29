@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import useStore from "../store";
+import useStore from "../store/store";
 import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import RegisterProduct from "../components/EntryCapture/RegisterProduct";

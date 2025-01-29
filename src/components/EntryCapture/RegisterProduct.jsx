@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import useStore from "../../store"; // Importamos el store
+import useStore from "../../store/store"; // Importamos el store
 import ErrorMessage from "../ErrorMessage";
 
 const RegisterProduct = ({ toggleModal, initialData }) => {

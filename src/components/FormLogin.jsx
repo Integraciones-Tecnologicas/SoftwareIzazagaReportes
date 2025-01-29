@@ -1,4 +1,4 @@
-import useStore from "../store";
+import useStore from "../store/store";
 import { data, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import ErrorMessage from "./ErrorMessage";
