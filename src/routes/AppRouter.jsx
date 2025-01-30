@@ -1,27 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import LoginPage from "../Pages/LoginPage"
-import PrivateRoutes from "./PrivateRoutes"
-import {  AdminRoutes} from "./AdminRoutes";
-
-let status = 'admin'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "../Pages/LoginPage";
+import PrivateRoutes from "./PrivateRoutes";
+import { AdminRoutes } from "./AdminRoutes";
+import useStore from "../store/store";
 
 export const AppRouter = () => {
+  const currentUser = useStore((state) => state.currentUser);
 
-    if (status === 'checking') return <div className="loading">Checking credentials...</div>
-
+  if (currentUser === null) {
     return (
-        <BrowserRouter>
-            <Routes>
-                {
-                    status === 'admin'
-                        ? <Route path="/*" element={<AdminRoutes />} /> :
-                    (status === 'locatario'
-                        ? <Route path="/*" element={<PrivateRoutes />} /> 
-                        : <Route path="login" element={<LoginPage />} />)
-                }
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
 
-                <Route path='*' element={<Navigate to='/login' replace />} />
-            </Routes>
-        </BrowserRouter>
-    )
-}
+  return (
+    <BrowserRouter>
+      <Routes>
+        {currentUser.role === "admin" ? (
+          <Route path="/*" element={<AdminRoutes />} />
+        ) : (
+          <Route path="/*" element={<PrivateRoutes />} />
+        )}
+      </Routes>
+    </BrowserRouter>
+  );
+};

@@ -3,10 +3,40 @@ import { create } from "zustand";
 const useStore = create((set, get) => ({
   entries: [],
   modifiedEntries: [],
-  savedReports: [], // Almacenar reportes con ID único
-  selectedTime: null, // Almacenar la selección del tiempo
-  appointments: [], // Almacenar citas reservadas
-  usedFolios: [], // Lista de folios utilizados
+  savedReports: [],
+  selectedTime: null,
+  appointments: [],
+  usedFolios: [],
+  tenants: [], // Almacenar locatarios
+  currentUser: null, // Usuario actual (admin o locatario)
+
+  // Función para agregar locatarios
+  addTenant: (tenant) => {
+    set((state) => ({
+      tenants: [...state.tenants, { ...tenant, id: `TENANT-${Date.now()}` }],
+    }));
+  },
+
+  // Función para iniciar sesión (admin o locatario)
+  login: (email, password) => {
+    const { tenants } = get();
+    const user = tenants.find((tenant) => tenant.email === email && tenant.password === password);
+
+    if (user) {
+      set({ currentUser: user }); // Autenticar al locatario
+      return true;
+    } else if (email === "admin" && password === "123456") {
+      set({ currentUser: { name: "Admin", role: "admin" } }); // Autenticar al admin
+      return true;
+    } else {
+      return false; // Credenciales incorrectas
+    }
+  },
+
+  // Función para cerrar sesión
+  logout: () => {
+    set({ currentUser: null });
+  },
 
   addEntry: (entry) => {
     set((state) => {
@@ -71,7 +101,7 @@ const useStore = create((set, get) => ({
   addAppointment: (appointment) => {
     set((state) => ({
       appointments: [...state.appointments, appointment],
-      usedFolios: [...state.usedFolios, appointment.folio], // Marcar el folio como usado
+      usedFolios: [...state.usedFolios, appointment.folio],
     }));
   },
 
