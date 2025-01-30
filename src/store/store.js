@@ -7,19 +7,27 @@ const useStore = create((set, get) => ({
   selectedTime: null, // Almacenar la selección del tiempo
   appointments: [], // Almacenar citas reservadas
   usedFolios: [], // Lista de folios utilizados
-  
 
   addEntry: (entry) => {
     set((state) => {
-      const existingEntry = state.entries.find((e) => e.sku === entry.sku);
-  
-      if (existingEntry) {
-        toast.error("El SKU ya existe. Ingresa un SKU diferente.");
-        return {}; // No realiza cambios en el estado
+      const existingEntryIndex = state.entries.findIndex((e) => e.sku === entry.sku);
+
+      if (existingEntryIndex >= 0) {
+        const updatedEntries = [...state.entries];
+        updatedEntries[existingEntryIndex] = { ...updatedEntries[existingEntryIndex], ...entry };
+
+        const updatedModifiedEntries = state.modifiedEntries.map((modifiedEntry) => {
+          if (modifiedEntry.sku === entry.sku) {
+            return { ...modifiedEntry, ...entry, quantity: modifiedEntry.quantity };
+          }
+          return modifiedEntry;
+        });
+
+        return { entries: updatedEntries, modifiedEntries: updatedModifiedEntries };
+      } else {
+        const newEntry = { ...entry, id: `ID-${Date.now()}` };
+        return { entries: [...state.entries, newEntry] };
       }
-  
-      const newEntry = { ...entry, id: `ID-${Date.now()}` };
-      return { entries: [...state.entries, newEntry] };
     });
   },
 

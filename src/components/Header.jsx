@@ -2,9 +2,12 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHouse, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
+import useStore from "../store/store";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const currentUser = useStore((state) => state.currentUser);
+  const logout = useStore((state) => state.logout);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -50,6 +53,11 @@ const Header = () => {
           <li className="hover:text-indigo-700 hover:underline transition duration-300 px-6 md:px-0 py-2 md:py-0">
             <Link to="/revision-ingreso">Revisión de Ingreso</Link>
           </li>
+          {currentUser && (
+            <li className="hover:text-indigo-700 hover:underline transition duration-300 px-6 md:px-0 py-2 md:py-0">
+              <button onClick={logout}>Cerrar Sesión</button>
+            </li>
+          )}
         </ul>
       </nav>
     </header>
