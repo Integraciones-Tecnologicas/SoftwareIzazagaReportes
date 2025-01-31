@@ -15,7 +15,6 @@ const Appointment = () => {
     const duration = latestReport ? latestReport.selectedTime : "No definido";
     const selectedDuration = latestReport?.selectedTime || "30 min";
 
-    // Obtén los reportes del usuario actual
     useEffect(() => {
         const userReports = getReportsByCurrentUser();
         if (userReports.length > 0) {
@@ -25,8 +24,7 @@ const Appointment = () => {
         }
     }, [getReportsByCurrentUser, savedReports]);
 
-    // Calcula los horarios disponibles
-    const availableTimes = useMemo(() => {
+    const calculateAvailableTimes = (date) => {
         const allTimes = [];
         const startHour = 10;
         const endHour = 18;
@@ -42,7 +40,7 @@ const Appointment = () => {
         const currentMinutes = now.getMinutes();
 
         return allTimes.filter(({ hour, minutes }) => {
-            if (selectedDate === now.toISOString().split('T')[0] && (hour < currentHour || (hour === currentHour && minutes <= currentMinutes))) {
+            if (date === now.toISOString().split('T')[0] && (hour < currentHour || (hour === currentHour && minutes <= currentMinutes))) {
                 return false;
             }
 
@@ -50,9 +48,8 @@ const Appointment = () => {
             const endTime = new Date(startTime);
             endTime.setMinutes(endTime.getMinutes() + durationMap[selectedDuration]);
 
-            // Solo verificamos las citas del usuario actual
             return !appointments.some((appointment) => {
-                if (appointment.userId !== currentUser.id || appointment.date !== selectedDate) return false;
+                if (appointment.userId !== currentUser.id || appointment.date !== date) return false;
 
                 const appointmentStart = new Date(2000, 0, 1, ...appointment.time.split(":").map(Number));
                 const appointmentEnd = new Date(appointmentStart);
@@ -65,7 +62,12 @@ const Appointment = () => {
                 );
             });
         }).map(({ hour, minutes }) => `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
-    }, [selectedDate, selectedDuration, appointments, currentUser]);
+    };
+
+    const isDateFullyBooked = (date) => {
+        const availableTimes = calculateAvailableTimes(date);
+        return availableTimes.length === 0;
+    };
 
     const registerAppointment = (data) => {
         const { date, time } = data;
@@ -130,7 +132,7 @@ const Appointment = () => {
                     <input
                         type="date"
                         id="date"
-                        className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
+                        className={`block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm ${isDateFullyBooked(selectedDate) ? 'bg-red-200' : ''}`}
                         {...register('date', { required: "La fecha es obligatoria" })}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         min={new Date().toISOString().split("T")[0]}
@@ -146,8 +148,8 @@ const Appointment = () => {
                         {...register('time', { required: "La hora es obligatoria" })}
                     >
                         <option value="">Selecciona una hora</option>
-                        {availableTimes.length > 0 ? (
-                            availableTimes.map((time) => (
+                        {calculateAvailableTimes(selectedDate).length > 0 ? (
+                            calculateAvailableTimes(selectedDate).map((time) => (
                                 <option key={time} value={time}>{time}</option>
                             ))
                         ) : (
