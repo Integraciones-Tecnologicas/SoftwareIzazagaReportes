@@ -48,14 +48,22 @@ const useStore = create((set, get) => ({
 
         const updatedModifiedEntries = state.modifiedEntries.map((modifiedEntry) => {
           if (modifiedEntry.sku === entry.sku) {
-            return { ...modifiedEntry, ...entry, quantity: modifiedEntry.quantity };
+            return { 
+              ...modifiedEntry, ...entry, 
+              quantity: modifiedEntry.quantity 
+            };
           }
           return modifiedEntry;
         });
 
         return { entries: updatedEntries, modifiedEntries: updatedModifiedEntries };
       } else {
-        const newEntry = { ...entry, id: `ID-${Date.now()}` };
+        const newEntry = { 
+          ...entry, 
+          id: `ID-${Date.now()}`,
+          createdBy: state.currentUser, // Guardar quién creó el producto
+        };
+        
         return { entries: [...state.entries, newEntry] };
       }
     });
@@ -66,7 +74,12 @@ const useStore = create((set, get) => ({
       const existingEntryIndex = state.entries.findIndex((e) => e.sku === entry.sku);
       if (existingEntryIndex >= 0) {
         const updatedModifiedEntries = [...state.modifiedEntries];
-        const newEntry = { ...state.entries[existingEntryIndex], quantity: entry.quantity, id: `ID-${Date.now()}` };
+        const newEntry = { 
+          ...state.entries[existingEntryIndex],
+           quantity: entry.quantity, 
+           id: `ID-${Date.now()}`,
+           createdBy: state.currentUser,
+        };
 
         updatedModifiedEntries.push(newEntry);
         return { modifiedEntries: updatedModifiedEntries };
@@ -88,6 +101,7 @@ const useStore = create((set, get) => ({
         id: `REP-${Date.now()}`,
         products: [...state.modifiedEntries],
         selectedTime: state.selectedTime,
+        createdBy: state.currentUser,
       };
       return {
         savedReports: [...state.savedReports, newReport],
