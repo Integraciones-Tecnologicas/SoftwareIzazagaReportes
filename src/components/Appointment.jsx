@@ -22,16 +22,27 @@ const Appointment = () => {
         const startHour = 10;
         const endHour = 18;
         const durationMap = { "30 min": 30, "1 hora": 60, "2 horas": 120 };
-    
+        
         // Generar todos los horarios en intervalos de 30 minutos
         for (let hour = startHour; hour < endHour; hour++) {
             allTimes.push({ hour, minutes: 0 });
             allTimes.push({ hour, minutes: 30 });
         }
-    
+        
         const appointments = useStore.getState().appointments;
+        
+        // Hora actual
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinutes = now.getMinutes();
+        
+        // Filtrar horarios disponibles (mayores o iguales a la hora actual)
+        const availableTimes = allTimes.filter(({ hour, minutes }) => {
+            // Si la fecha seleccionada es el mismo día y la hora y minutos son menores a los actuales, se descarta
+            if (selectedDate === now.toISOString().split('T')[0] && (hour < currentHour || (hour === currentHour && minutes <= currentMinutes))) {
+                return false;
+            }
     
-        return allTimes.filter(({ hour, minutes }) => {
             const startTime = new Date(2000, 0, 1, hour, minutes);
             const endTime = new Date(startTime);
             endTime.setMinutes(endTime.getMinutes() + durationMap[selectedDuration]);
@@ -51,6 +62,8 @@ const Appointment = () => {
                 );
             });
         }).map(({ hour, minutes }) => `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+    
+        return availableTimes;
     };
     
         
@@ -134,6 +147,7 @@ const Appointment = () => {
                         className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
                         {...register('date', { required: "La fecha es obligatoria" })}
                         onChange={(e) => setSelectedDate(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]} // Restringe fechas anteriores
                     />
                     {errors.date && <ErrorMessage>{errors.date.message}</ErrorMessage>}
                 </div>

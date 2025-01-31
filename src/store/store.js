@@ -9,6 +9,7 @@ const useStore = create((set, get) => ({
   usedFolios: [],
   tenants: [], // Almacenar locatarios
   currentUser: null, // Usuario actual (admin o locatario)
+  
 
   // Función para agregar locatarios
   addTenant: (tenant) => {
