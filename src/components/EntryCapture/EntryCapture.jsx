@@ -1,11 +1,10 @@
 import useStore from "../../store/store";
 import { useNavigate } from "react-router-dom";
-import { FaCalendarAlt } from "react-icons/fa"; // Icono de calendario
-import { useState } from "react";
+import { FaCalendarAlt } from "react-icons/fa";
+import { useState, useMemo } from "react"; // Importa useMemo
 import RegisterProduct from "./RegisterProduct";
 import SearchHeader from "./SearchHeader";
 import { ToastContainer } from "react-toastify";
-
 import { CiDeliveryTruck } from "react-icons/ci";
 import { PiTruckTrailer } from "react-icons/pi";
 import { FaTruckLoading } from "react-icons/fa";
@@ -14,14 +13,20 @@ import ErrorMessage from "../ErrorMessage";
 const EntryCapture = () => {
   const navigate = useNavigate();
   const [isModalOpen, setModalOpen] = useState(false);
-  
+
+  // Obtén los valores del store una sola vez
   const modifiedEntries = useStore((state) => state.modifiedEntries);
   const entries = useStore((state) => state.entries);
   const selectedTime = useStore((state) => state.selectedTime);
   const setSelectedTime = useStore((state) => state.setSelectedTime);
+  const saveReport = useStore((state) => state.saveReport);
+  const removeModifiedEntryById = useStore((state) => state.removeModifiedEntryById);
+
+  // Usa useMemo para evitar recalcular valores en cada renderizado
+  const hasEntries = useMemo(() => modifiedEntries.length > 0, [modifiedEntries]);
 
   const handleScheduleAppointment = () => {
-    useStore.getState().saveReport();
+    saveReport();
     navigate("/agendar-cita");
   };
 
@@ -35,7 +40,7 @@ const EntryCapture = () => {
       <ToastContainer />
       <SearchHeader toggleModal={toggleModal} />
 
-      {modifiedEntries.length === 0 ? (
+      {!hasEntries ? (
         <p className="text-center text-gray-500">No hay entradas registradas.</p>
       ) : (
         <>
@@ -71,7 +76,7 @@ const EntryCapture = () => {
                     <td className="px-4 py-3 border-b">{entry.observations || "N/A"}</td>
                     <td className="px-4 py-3 border-b text-center">
                       <button
-                        onClick={() => useStore.getState().removeModifiedEntryById(entry.id)}
+                        onClick={() => removeModifiedEntryById(entry.id)}
                         className="text-red-600 hover:text-red-800 font-semibold"
                       >
                         Eliminar
@@ -82,7 +87,6 @@ const EntryCapture = () => {
               </tbody>
             </table>
           </div>
-
 
           <div className="mt-4 py-4">
             <label className="block font-semibold text-gray-700 mb-2">
@@ -130,10 +134,8 @@ const EntryCapture = () => {
               <ErrorMessage>Debes seleccionar un tipo de vehículo y duración.</ErrorMessage>
             )}
           </div>
-
-      </>
+        </>
       )}
-
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">

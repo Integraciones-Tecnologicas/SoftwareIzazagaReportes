@@ -4,7 +4,8 @@ import { useState } from 'react';
 import useStore from '../store/store'; // Importar el hook para acceder al store
 
 const ReviewEntry = () => {
-    const savedReports = useStore((state) => state.savedReports);
+    const getReportsByCurrentUser = useStore((state) => state.getReportsByCurrentUser);
+    const savedReports = getReportsByCurrentUser(); // Solo reportes del usuario actual
     const [checkedItems, setCheckedItems] = useState({});
 
     // Simulación de actualización en la base de datos

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFile, faEdit } from "@fortawesome/free-solid-svg-icons";
 import useStore from "../../store/store"; // Importamos el store
@@ -6,7 +6,8 @@ import RegisterProduct from "./RegisterProduct";
 import { toast, ToastContainer } from "react-toastify";
 
 const SearchHeader = ({ toggleModal }) => {
-  const entries = useStore((state) => state.entries); // Obtenemos las entradas del store
+  const getEntriesByCurrentUser = useStore((state) => state.getEntriesByCurrentUser);
+  const [entries, setEntries] = useState([]); // Estado local para las entradas del usuario actual
   const [selectedEntry, setSelectedEntry] = useState(null); // Estado para la entrada seleccionada
   const [editModalOpen, setEditModalOpen] = useState(false); 
   const [update, setUpdate] = useState(false); 
@@ -18,6 +19,12 @@ const SearchHeader = ({ toggleModal }) => {
     price: "",
     quantity: ''
   });
+
+  // Obtén las entradas del usuario actual al montar el componente
+  useEffect(() => {
+    const userEntries = getEntriesByCurrentUser();
+    setEntries(userEntries);
+  }, [getEntriesByCurrentUser]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -185,7 +192,7 @@ const SearchHeader = ({ toggleModal }) => {
           min="0"
           placeholder="Ejemplo: 10"
           className="w-full border border-indigo-700 rounded-lg px-4 py-2"
-          value={formData.quantity}
+          value={formData.quantity ?? ""} // Asegurar que no sea undefined
           onChange={handleQuantityChange}
         />
       </div>

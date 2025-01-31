@@ -1,78 +1,71 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import ErrorMessage from "./ErrorMessage";
 import useStore from "../store/store";
 
 const Appointment = () => {
-    const savedReports = useStore((state) => state.savedReports);
-    const [latestReport, setLatestReport] = useState(
-        savedReports.length > 0 ? savedReports[savedReports.length - 1] : null
-    );
-    
-    const folio = latestReport ? latestReport.id : "";
-    const duration = latestReport ? latestReport.selectedTime : "No definido";
-    
-    const addAppointment = useStore((state) => state.addAppointment);
-    const isTimeAvailable = useStore((state) => state.isTimeAvailable);
-  
+    const { savedReports, appointments, addAppointment, isTimeAvailable, isFolioUsed, getReportsByCurrentUser, currentUser } = useStore();
+    const [latestReport, setLatestReport] = useState(null);
+    const [selectedDate, setSelectedDate] = useState("");
+    const [errorMessage, setErrorMessage] = useState(null);
+
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
-    const getAvailableTimes = (selectedDate, selectedDuration) => {
+    const folio = latestReport ? latestReport.id : "";
+    const duration = latestReport ? latestReport.selectedTime : "No definido";
+    const selectedDuration = latestReport?.selectedTime || "30 min";
+
+    // Obtén los reportes del usuario actual
+    useEffect(() => {
+        const userReports = getReportsByCurrentUser();
+        if (userReports.length > 0) {
+            setLatestReport(userReports[userReports.length - 1]);
+        } else {
+            setLatestReport(null);
+        }
+    }, [getReportsByCurrentUser, savedReports]);
+
+    // Calcula los horarios disponibles
+    const availableTimes = useMemo(() => {
         const allTimes = [];
         const startHour = 10;
         const endHour = 18;
         const durationMap = { "30 min": 30, "1 hora": 60, "2 horas": 120 };
-        
-        // Generar todos los horarios en intervalos de 30 minutos
+
         for (let hour = startHour; hour < endHour; hour++) {
             allTimes.push({ hour, minutes: 0 });
             allTimes.push({ hour, minutes: 30 });
         }
-        
-        const appointments = useStore.getState().appointments;
-        
-        // Hora actual
+
         const now = new Date();
         const currentHour = now.getHours();
         const currentMinutes = now.getMinutes();
-        
-        // Filtrar horarios disponibles (mayores o iguales a la hora actual)
-        const availableTimes = allTimes.filter(({ hour, minutes }) => {
-            // Si la fecha seleccionada es el mismo día y la hora y minutos son menores a los actuales, se descarta
+
+        return allTimes.filter(({ hour, minutes }) => {
             if (selectedDate === now.toISOString().split('T')[0] && (hour < currentHour || (hour === currentHour && minutes <= currentMinutes))) {
                 return false;
             }
-    
+
             const startTime = new Date(2000, 0, 1, hour, minutes);
             const endTime = new Date(startTime);
             endTime.setMinutes(endTime.getMinutes() + durationMap[selectedDuration]);
-    
+
+            // Solo verificamos las citas del usuario actual
             return !appointments.some((appointment) => {
-                if (appointment.date !== selectedDate) return false;
-    
+                if (appointment.userId !== currentUser.id || appointment.date !== selectedDate) return false;
+
                 const appointmentStart = new Date(2000, 0, 1, ...appointment.time.split(":").map(Number));
                 const appointmentEnd = new Date(appointmentStart);
                 appointmentEnd.setMinutes(appointmentEnd.getMinutes() + durationMap[appointment.duration]);
-    
-                // Comprobar solapamiento
+
                 return (
-                    (startTime >= appointmentStart && startTime < appointmentEnd) || 
-                    (endTime > appointmentStart && endTime <= appointmentEnd) || 
+                    (startTime >= appointmentStart && startTime < appointmentEnd) ||
+                    (endTime > appointmentStart && endTime <= appointmentEnd) ||
                     (startTime <= appointmentStart && endTime >= appointmentEnd)
                 );
             });
         }).map(({ hour, minutes }) => `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
-    
-        return availableTimes;
-    };
-    
-        
-    const [selectedDate, setSelectedDate] = useState("");
-    const selectedDuration = latestReport?.selectedTime || "30 min"; // Duración por defecto
-    const availableTimes = getAvailableTimes(selectedDate, selectedDuration); // Pasar ambos valores
-    const [errorMessage, setErrorMessage] = useState(null)
-
-    const isFolioUsed = useStore((state) => state.isFolioUsed);
+    }, [selectedDate, selectedDuration, appointments, currentUser]);
 
     const registerAppointment = (data) => {
         const { date, time } = data;
@@ -99,29 +92,22 @@ const Appointment = () => {
 
         setErrorMessage('Cita registrada con éxito.');
         addAppointment({ date, time, duration, folio });
-        setLatestReport(null); 
+        setLatestReport(null);
         reset();
     };
 
-    
-    let hoy = new Date();
-    console.log( hoy );
-
     return (
-        
         <div className="max-w-md mx-auto bg-white rounded-lg p-6 mt-3 shadow-xl border">
             <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
                 Solicitud de Cita para Ingreso de Mercancía
             </h2>
-           
+
             <div className="mt-6">
                 <h3 className="text-xl font-semibold">Historial de Citas Reservadas</h3>
                 <ul className="mt-2 border rounded-lg p-3 bg-gray-50">
                     {savedReports.length > 0 ? (
                         savedReports.map((report) => {
-                            const appointment = useStore.getState().appointments.find(
-                                (app) => app.folio === report.id
-                            );
+                            const appointment = appointments.find((app) => app.folio === report.id);
 
                             return (
                                 <li key={report.id} className="p-2 border-b">
@@ -147,7 +133,7 @@ const Appointment = () => {
                         className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
                         {...register('date', { required: "La fecha es obligatoria" })}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        min={new Date().toISOString().split("T")[0]} // Restringe fechas anteriores
+                        min={new Date().toISOString().split("T")[0]}
                     />
                     {errors.date && <ErrorMessage>{errors.date.message}</ErrorMessage>}
                 </div>
@@ -193,15 +179,14 @@ const Appointment = () => {
                     />
                 </div>
 
-                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}                              
+                {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
 
-                    <input
-                        type="submit"
-                        className={`w-full mt-3 p-3 text-white uppercase font-bold ${folio ? "bg-indigo-500 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"}`}
-                        value='Agendar Cita'
-                        disabled={!folio}
-                    />
-
+                <input
+                    type="submit"
+                    className={`w-full mt-3 p-3 text-white uppercase font-bold ${folio ? "bg-indigo-500 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"}`}
+                    value='Agendar Cita'
+                    disabled={!folio}
+                />
             </form>
         </div>
     );

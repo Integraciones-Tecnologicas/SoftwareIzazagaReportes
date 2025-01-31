@@ -1,15 +1,14 @@
 import { create } from "zustand";
 
 const useStore = create((set, get) => ({
-  entries: [],
-  modifiedEntries: [],
-  savedReports: [],
+  entries: [], //Productos 
+  modifiedEntries: [], //Productos con cantidades
+  savedReports: [], //Reportes con distintos productos con folio
   selectedTime: null,
-  appointments: [],
-  usedFolios: [],
+  appointments: [], // Cada cita ahora incluirá el ID del usuario
+  usedFolios: [], //Se marca usado para no volverlos a registrar
   tenants: [], // Almacenar locatarios
   currentUser: null, // Usuario actual (admin o locatario)
-  
 
   // Función para agregar locatarios
   addTenant: (tenant) => {
@@ -39,6 +38,7 @@ const useStore = create((set, get) => ({
     set({ currentUser: null });
   },
 
+  // Función para agregar una entrada
   addEntry: (entry) => {
     set((state) => {
       const existingEntryIndex = state.entries.findIndex((e) => e.sku === entry.sku);
@@ -70,6 +70,7 @@ const useStore = create((set, get) => ({
     });
   },
 
+  // Función para actualizar entradas modificadas
   updateModifiedEntries: (entry) => {
     set((state) => {
       const existingEntryIndex = state.entries.findIndex((e) => e.sku === entry.sku);
@@ -77,9 +78,9 @@ const useStore = create((set, get) => ({
         const updatedModifiedEntries = [...state.modifiedEntries];
         const newEntry = { 
           ...state.entries[existingEntryIndex],
-           quantity: entry.quantity, 
-           id: `ID-${Date.now()}`,
-           createdBy: state.currentUser,
+          quantity: entry.quantity, 
+          id: `ID-${Date.now()}`,
+          createdBy: state.currentUser, // Guardar quién modificó el producto
         };
 
         updatedModifiedEntries.push(newEntry);
@@ -90,19 +91,22 @@ const useStore = create((set, get) => ({
     });
   },
 
+  // Función para eliminar una entrada modificada por ID
   removeModifiedEntryById: (id) => set((state) => ({
     modifiedEntries: state.modifiedEntries.filter((entry) => entry.id !== id),
   })),
 
+  // Función para seleccionar el tiempo
   setSelectedTime: (time) => set(() => ({ selectedTime: time })),
 
+  // Función para guardar un reporte
   saveReport: () => set((state) => {
     if (state.modifiedEntries.length > 0) {
       const newReport = {
         id: `REP-${Date.now()}`,
         products: [...state.modifiedEntries],
         selectedTime: state.selectedTime,
-        createdBy: state.currentUser,
+        createdBy: state.currentUser, // Guardar quién creó el reporte
       };
       return {
         savedReports: [...state.savedReports, newReport],
@@ -113,18 +117,23 @@ const useStore = create((set, get) => ({
     return {};
   }),
 
-  addAppointment: (appointment) => {
-    set((state) => ({
-      appointments: [...state.appointments, appointment],
-      usedFolios: [...state.usedFolios, appointment.folio],
-    }));
-  },
-
+  // Función para verificar si un folio está usado
   isFolioUsed: (folio) => {
     return get().usedFolios.includes(folio);
   },
 
+  // Función para agregar una cita
+  addAppointment: (appointment) => {
+    const { currentUser } = get();
+    set((state) => ({
+      appointments: [...state.appointments, { ...appointment, userId: currentUser.id }],
+      usedFolios: [...state.usedFolios, appointment.folio],
+    }));
+  },
+
+  // Función para verificar si un tiempo está disponible para el usuario actual
   isTimeAvailable: (date, time, duration) => {
+    const { currentUser, appointments } = get();
     const startTime = new Date(`${date}T${time}`);
     const endTime = new Date(startTime);
 
@@ -136,7 +145,10 @@ const useStore = create((set, get) => ({
       return false;
     }
 
-    return !get().appointments.some((appointment) => {
+    // Solo verificamos las citas del usuario actual
+    return !appointments.some((appointment) => {
+      if (appointment.userId !== currentUser.id || appointment.date !== date) return false;
+
       const appointmentStart = new Date(`${appointment.date}T${appointment.time}`);
       const appointmentEnd = new Date(appointmentStart);
 
@@ -146,9 +158,22 @@ const useStore = create((set, get) => ({
 
       return (
         (startTime >= appointmentStart && startTime < appointmentEnd) ||
-        (endTime > appointmentStart && endTime <= appointmentEnd)
+        (endTime > appointmentStart && endTime <= appointmentEnd) ||
+        (startTime <= appointmentStart && endTime >= appointmentEnd)
       );
     });
+  },
+
+  // Función para obtener solo las entradas creadas por el usuario actual
+  getEntriesByCurrentUser: () => {
+    const { entries, currentUser } = get();
+    return entries.filter((entry) => entry.createdBy?.id === currentUser?.id);
+  },
+
+  // Función para obtener solo los reportes creados por el usuario actual
+  getReportsByCurrentUser: () => {
+    const { savedReports, currentUser } = get();
+    return savedReports.filter((report) => report.createdBy?.id === currentUser?.id);
   },
 }));
 
