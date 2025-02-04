@@ -2,10 +2,14 @@ import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import useStore from "../store/store";
 import ErrorMessage from "./ErrorMessage";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Prueba3 from "./Pruebas/Prueba3";
 
 const FormRegister = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
   const addTenant = useStore((state) => state.addTenant);
+  const tenants = useStore((state) => state.tenants); // Obtener la lista de usuarios
 
   const registerTenant = (data) => {
     toast.success('Locatario Agregado Correctamente');
@@ -14,12 +18,34 @@ const FormRegister = () => {
     reset(); // Limpiar el formulario
   };
 
+  
   return (
     <>
       <ToastContainer />
       <div className="mx-auto max-w-5xl mt-10 p-5 bg-white shadow-md rounded-md">
         <h2 className="font-bold text-2xl text-center mb-8">Datos Generales Locatarios</h2>
 
+        <Prueba3 />
+
+        {tenants && (
+            <div className="mt-10">
+            <h3 className="font-bold text-xl mb-4">Usuarios Registrados</h3>
+            <ul>
+                {tenants.map((tenant, index) => (
+                <li key={tenant.id} className="mb-2 p-3 border border-gray-300 rounded-md">
+                    <p><strong>Nombre:</strong> {tenant.nameTenant}</p>
+                    <p><strong>Email:</strong> {tenant.email}</p>
+                    <p><strong>Dirección:</strong> {tenant.address}</p>
+                    <p><strong>Teléfono:</strong> {tenant.telTenant}</p>
+                    <p><strong>RFC:</strong> {tenant.rfc}</p>
+                    <p><strong>Nombre de Contacto:</strong> {tenant.contactName}</p>
+                    <p><strong>Teléfono de Contacto:</strong> {tenant.telContact}</p>
+                    <p><strong>Local:</strong> {tenant.local}</p>
+                </li>
+                ))}
+            </ul>
+            </div>
+        )}
         <form noValidate onSubmit={handleSubmit(registerTenant)}>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 {/* Campos del formulario */}
