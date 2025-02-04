@@ -47,13 +47,13 @@ const Prueba3 = () => {
   if (error) return <p className="text-center text-red-600">Error: {error}</p>;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-center mb-6">Lista de Locatarios</h1>
-      <div className="max-w-2xl mx-auto">
+    <div className="p-2 bg-gray-100 min-h-72">
+      <h1 className="text-xl font-bold text-center mb-6">Lista de Locatarios</h1>
+      <div className="max-w-xl mx-auto">
         {locatarios.map((locatario) => (
           <div
             key={locatario.LocatarioId}
-            className="bg-white shadow-md rounded-lg p-6 mb-4"
+            className="bg-white shadow-md rounded-lg p-2 mb-4"
           >
             <p className="text-gray-700">
               <strong className="text-gray-900">ID:</strong> {locatario.LocatarioId}
