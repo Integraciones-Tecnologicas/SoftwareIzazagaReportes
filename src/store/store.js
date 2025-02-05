@@ -10,8 +10,9 @@ const useStore = create((set, get) => ({
   tenants: [], // Almacenar locatarios
   currentUser: null, // Usuario actual (admin o locatario)
   currentFolio: null, // Nuevo estado para el folio actual
+  inProgressReports: {}, // Reportes en progreso por usuario
 
-  // Función para agregar locatarios (sin cambios)
+  // Función para agregar locatarios
   addTenant: (tenant) => {
     set((state) => {
       const existingIndex = state.tenants.findIndex((t) => t.nameTenant === tenant.nameTenant);
@@ -29,13 +30,24 @@ const useStore = create((set, get) => ({
     });
   },
 
-  // Función para iniciar sesión (sin cambios)
+  // Función para iniciar sesión
   login: (email, password) => {
-    const { tenants } = get();
+    const { tenants, addInProgressReport, getInProgressReport } = get();
     const user = tenants.find((tenant) => tenant.email === email && tenant.password === password);
 
     if (user) {
       set({ currentUser: user });
+
+      // Recuperar el reporte en progreso del usuario
+      const inProgressReport = getInProgressReport(user.id);
+      if (inProgressReport) {
+        set({
+          modifiedEntries: inProgressReport.products,
+          selectedTime: inProgressReport.selectedTime,
+          currentFolio: inProgressReport.id,
+        });
+      }
+
       return true;
     } else if (email === "admin" && password === "123456") {
       set({ currentUser: { name: "Admin", role: "admin" } });
@@ -45,12 +57,12 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // Función para cerrar sesión (sin cambios)
+  // Función para cerrar sesión
   logout: () => {
     set({ currentUser: null });
   },
 
-  // Función para agregar una entrada (sin cambios)
+  // Función para agregar una entrada
   addEntry: (entry) => {
     set((state) => {
       const existingEntryIndex = state.entries.findIndex((e) => e.sku === entry.sku);
@@ -98,9 +110,16 @@ const useStore = create((set, get) => ({
           status: "pendiente", // Establecer el estado como "pendiente"
         };
 
-        // Si no hay un folio actual, generamos uno nuevo
-        if (!state.currentFolio) {
-          set({ currentFolio: newEntry.folio });
+        // Guardar el reporte en progreso
+        if (state.currentUser) {
+          const inProgressReport = {
+            id: newEntry.folio,
+            products: updatedModifiedEntries,
+            selectedTime: state.selectedTime,
+            createdBy: state.currentUser,
+            status: "pendiente",
+          };
+          state.addInProgressReport(state.currentUser.id, inProgressReport);
         }
 
         updatedModifiedEntries.push(newEntry);
@@ -117,7 +136,7 @@ const useStore = create((set, get) => ({
       modifiedEntries: state.modifiedEntries.filter((entry) => entry.id !== id),
     })),
 
-  // Función para seleccionar el tiempo (sin cambios)
+  // Función para seleccionar el tiempo
   setSelectedTime: (time) => set(() => ({ selectedTime: time })),
 
   // Función para guardar un reporte
@@ -161,14 +180,22 @@ const useStore = create((set, get) => ({
     }),
 
   // Función para actualizar el estado de un reporte a "completo"
-  completeReport: (folio) =>
-    set((state) => ({
-      savedReports: state.savedReports.map((report) =>
+  completeReport: (folio) => {
+    set((state) => {
+      const updatedSavedReports = state.savedReports.map((report) =>
         report.id === folio ? { ...report, status: "completo" } : report
-      ),
-    })),
+      );
 
-  // Función para verificar si un folio está usado (sin cambios)
+      // Limpiar el reporte en progreso del usuario
+      if (state.currentUser) {
+        state.clearInProgressReport(state.currentUser.id);
+      }
+
+      return { savedReports: updatedSavedReports };
+    });
+  },
+
+  // Función para verificar si un folio está usado
   isFolioUsed: (folio) => {
     return get().usedFolios.includes(folio);
   },
@@ -185,7 +212,7 @@ const useStore = create((set, get) => ({
     completeReport(appointment.folio);
   },
 
-  // Función para verificar si un tiempo está disponible (sin cambios)
+  // Función para verificar si un tiempo está disponible
   isTimeAvailable: (date, time, duration) => {
     const { currentUser, appointments } = get();
     const startTime = new Date(`${date}T${time}`);
@@ -215,16 +242,51 @@ const useStore = create((set, get) => ({
     });
   },
 
-  // Función para obtener solo las entradas creadas por el usuario actual (sin cambios)
+  // Función para obtener solo las entradas creadas por el usuario actual
   getEntriesByCurrentUser: () => {
     const { entries, currentUser } = get();
     return entries.filter((entry) => entry.createdBy?.id === currentUser?.id);
   },
 
-  // Función para obtener solo los reportes creados por el usuario actual (sin cambios)
+  // Función para obtener solo los reportes creados por el usuario actual
   getReportsByCurrentUser: () => {
     const { savedReports, currentUser } = get();
-    return savedReports.filter((report) => report.createdBy?.id === currentUser?.id && report.status === "pendiente");
+    return savedReports.filter((report) => report.createdBy?.id === currentUser?.id);
+  },
+
+  // Función para agregar un reporte en progreso
+  addInProgressReport: (userId, report) => {
+    set((state) => ({
+      inProgressReports: {
+        ...state.inProgressReports,
+        [userId]: report, // Asociar el reporte con el usuario
+      },
+    }));
+  },
+
+  // Función para obtener el reporte en progreso de un usuario
+  getInProgressReport: (userId) => {
+    return get().inProgressReports[userId];
+  },
+
+  // Función para limpiar el reporte en progreso de un usuario
+  clearInProgressReport: (userId) => {
+    set((state) => {
+      const updatedInProgressReports = { ...state.inProgressReports };
+      delete updatedInProgressReports[userId]; // Eliminar el reporte en progreso del usuario
+      return { inProgressReports: updatedInProgressReports };
+    });
+  },
+
+  loadPendingReport: (folio) => {
+    const report = get().savedReports.find((r) => r.id === folio && r.status === "pendiente");
+    if (report) {
+      set({
+        modifiedEntries: [...report.products], // Cargar los productos del reporte
+        selectedTime: report.selectedTime, // Cargar el tiempo seleccionado
+        currentFolio: report.id, // Establecer el folio actual
+      });
+    }
   },
   
   loadPendingReport: (folio) => {
