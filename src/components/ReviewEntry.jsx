@@ -6,7 +6,7 @@ import useStore from '../store/store'; // Importar el hook para acceder al store
 const ReviewEntry = () => {
     const savedReports = useStore((state) => state.savedReports);
     const [checkedItems, setCheckedItems] = useState({});
-    const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
+    const [searchFolio, setSearchFolio] = useState(""); // Estado para buscar por folio
 
     // Simulación de actualización en la base de datos
     const handleCheck = (productId) => {
@@ -21,12 +21,8 @@ const ReviewEntry = () => {
         }
     };
 
-    // Filtrar productos según el término de búsqueda
-    const filteredProducts = savedReports.flatMap(report =>
-        report.products.filter(product => 
-            product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    );
+    // Buscar el reporte que coincida con el folio ingresado
+    const filteredReport = savedReports.find(report => report.id === searchFolio);
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
@@ -36,16 +32,16 @@ const ReviewEntry = () => {
                 <p className="text-center text-sm">Local - 245</p>
             </div>
 
-            {/* Input de búsqueda */}
+            {/* Input de búsqueda por folio */}
             <div className="mb-4">
-                <label htmlFor="search" className="block font-semibold">Buscar por código:</label>
+                <label htmlFor="searchFolio" className="block font-semibold">Buscar por folio:</label>
                 <input
-                    id="search"
+                    id="searchFolio"
                     type="text"
-                    placeholder="Ejemplo: 12345"
+                    placeholder="Ejemplo: 10025"
                     className="w-full p-2 border border-gray-400 rounded-md"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchFolio}
+                    onChange={(e) => setSearchFolio(e.target.value)}
                 />
             </div>
 
@@ -60,8 +56,8 @@ const ReviewEntry = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredProducts.length > 0 ? (
-                        filteredProducts.map((product) => (
+                    {filteredReport ? (
+                        filteredReport.products.map((product) => (
                             <tr key={product.id}>
                                 <td className="p-2">{product.sku}</td>
                                 <td className="p-2">{product.description}</td>
@@ -87,7 +83,7 @@ const ReviewEntry = () => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="p-2 text-center">No se encontraron productos.</td>
+                            <td colSpan="5" className="p-2 text-center">No se encontró ningún reporte con ese folio.</td>
                         </tr>
                     )}
                 </tbody>

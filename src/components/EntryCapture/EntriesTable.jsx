@@ -21,7 +21,7 @@ const EntriesTable = ({ entries, removeModifiedEntryById }) => {
           </thead>
           <tbody>
             {entries.map((entry, index) => (
-              <tr key={index} className="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
+              <tr key={entry.id} className="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
                 <td className="px-4 py-3 border-b">{entry.description}</td>
                 <td className="px-4 py-3 border-b text-center">{entry.sku || "N/A"}</td>
                 <td className="px-4 py-3 border-b text-center">{entry.cost}</td>
