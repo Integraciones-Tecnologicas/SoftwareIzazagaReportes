@@ -12,9 +12,22 @@ const useStore = create((set, get) => ({
 
   // Función para agregar locatarios
   addTenant: (tenant) => {
-    set((state) => ({
-      tenants: [...state.tenants, { ...tenant, id: `TENANT-${Date.now()}` }],
-    }));
+    set((state) => {
+      const existingIndex = state.tenants.findIndex((t) => t.nameTenant === tenant.nameTenant);
+  
+      if (existingIndex !== -1) {
+        // Si ya existe, actualizar los datos sin cambiar el ID
+        const updatedTenants = [...state.tenants];
+        updatedTenants[existingIndex] = { ...updatedTenants[existingIndex], ...tenant };
+  
+        return { tenants: updatedTenants };
+      } else {
+        // Si no existe, agregarlo como nuevo
+        return {
+          tenants: [...state.tenants, { ...tenant, id: `TENANT-${Date.now()}` }]
+        };
+      }
+    });
   },
 
   // Función para iniciar sesión (admin o locatario)

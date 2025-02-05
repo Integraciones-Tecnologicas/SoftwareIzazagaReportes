@@ -3,30 +3,63 @@ import { ToastContainer, toast } from "react-toastify";
 import useStore from "../store/store";
 import ErrorMessage from "./ErrorMessage";
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Prueba3 from "./Pruebas/Prueba3";
 
 const FormRegister = () => {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
-  const addTenant = useStore((state) => state.addTenant);
-  const tenants = useStore((state) => state.tenants); // Obtener la lista de usuarios
-
-  const registerTenant = (data) => {
-    toast.success('Locatario Agregado Correctamente');
-    addTenant(data); // Guardar el locatario en el store
-    console.log("Locatario registrado:", data);
-    reset(); // Limpiar el formulario
-  };
-
+    const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm();
+    const addTenant = useStore((state) => state.addTenant);
+    const tenants = useStore((state) => state.tenants);
   
-  return (
-    <>
-      <ToastContainer />
-      <div className="mx-auto max-w-5xl mt-10 p-5 bg-white shadow-md rounded-md">
-        <h2 className="font-bold text-2xl text-center mb-8">Datos Generales Locatarios</h2>
+    const nameTenant = watch("nameTenant"); // Escuchar cambios en el input de nombre
+  
+    useEffect(() => {
+      if (nameTenant) {
+        const existingTenant = tenants.find(tenant => tenant.nameTenant.toLowerCase() === nameTenant.toLowerCase());
+        if (existingTenant) {
+          // Llenar los demás campos con la información del locatario encontrado
+          setValue("email", existingTenant.email);
+          setValue("address", existingTenant.address);
+          setValue("telTenant", existingTenant.telTenant);
+          setValue("rfc", existingTenant.rfc);
+          setValue("contactName", existingTenant.contactName);
+          setValue("telContact", existingTenant.telContact);
+          setValue("local", existingTenant.local);
+        }
+      }
+    }, [nameTenant, tenants, setValue]);
 
-        <Prueba3 />
+    // Función para manejar cambios en el nombre y llenar campos si el locatario ya existe
+    const handleNameChange = (event) => {
+        const name = event.target.value;
+        const existingTenant = tenants.find(tenant => tenant.nameTenant === name);
 
+        if (existingTenant) {
+            // Llenar automáticamente los campos con los datos del locatario existente
+            setValue("email", existingTenant.email);
+            setValue("address", existingTenant.address);
+            setValue("telTenant", existingTenant.telTenant);
+            setValue("rfc", existingTenant.rfc);
+            setValue("contactName", existingTenant.contactName);
+            setValue("telContact", existingTenant.telContact);
+            setValue("local", existingTenant.local);
+        }
+    };
+
+    const handleClearForm = () => {
+        reset(); // Limpiar todos los campos
+      };
+
+    const registerTenant = (data) => {
+    toast.success('Locatario agregado o actualizado correctamente');
+    addTenant(data); // Guardar o actualizar el locatario en el store
+    reset(); // Limpiar el formulario
+    };
+    console.log(tenants)
+  
+    return (
+      <>
+        <ToastContainer />
+        <div className="mx-auto max-w-5xl mt-10 p-5 bg-white shadow-md rounded-md">
         {tenants && (
             <div className="mt-10">
             <h3 className="font-bold text-xl mb-4">Usuarios Registrados</h3>
@@ -46,28 +79,41 @@ const FormRegister = () => {
             </ul>
             </div>
         )}
-        <form noValidate onSubmit={handleSubmit(registerTenant)}>
+
+          <h2 className="font-bold text-2xl text-center mb-8">Datos Generales Locatarios</h2>
+  
+          <form noValidate onSubmit={handleSubmit(registerTenant)}>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Campos del formulario */}
-                <div className="md:col-span-9">
+              <div className="md:col-span-9">
                 <label htmlFor="nameTenant" className="font-bold text-gray-700">
-                    Nombre 
+                  Nombre 
                 </label>
                 <input  
-                    id="nameTenant"
-                    className="w-full p-3 border border-gray-500 rounded-md"  
-                    type="text" 
-                    placeholder="Nombre del locatario"
-                    {...register('nameTenant', {
+                  id="nameTenant"
+                  className="w-full p-3 border border-gray-500 rounded-md"  
+                  type="text" 
+                  placeholder="Nombre del locatario"
+                  onChange={handleNameChange}
+                  {...register('nameTenant', {
                     required: 'El Nombre del Locatario es Obligatorio'
-                    })}
+                  })}
                 />
                 {errors.nameTenant && (
-                    <ErrorMessage>{errors.nameTenant?.message}</ErrorMessage>
-                )}
-                </div>
+                  <ErrorMessage>{errors.nameTenant?.message}</ErrorMessage>
+                )}                
+            </div>
+            <div className="flex justify-between items-center mb-2">
+                    <button 
+                        type="button" 
+                        onClick={handleClearForm} 
+                        className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                        ❌ Limpiar
+                    </button>
+                    </div>
+  
 
-                <div className="md:col-span-6">
+            <div className="md:col-span-6">
                 <label htmlFor="email" className="font-bold text-gray-700">
                     E-mail
                 </label>
