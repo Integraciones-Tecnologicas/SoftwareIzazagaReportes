@@ -277,17 +277,6 @@ const useStore = create((set, get) => ({
       return { inProgressReports: updatedInProgressReports };
     });
   },
-
-  loadPendingReport: (folio) => {
-    const report = get().savedReports.find((r) => r.id === folio && r.status === "pendiente");
-    if (report) {
-      set({
-        modifiedEntries: [...report.products], // Cargar los productos del reporte
-        selectedTime: report.selectedTime, // Cargar el tiempo seleccionado
-        currentFolio: report.id, // Establecer el folio actual
-      });
-    }
-  },
   
   loadPendingReport: (folio) => {
     const report = get().savedReports.find((r) => r.id === folio && r.status === "pendiente");
