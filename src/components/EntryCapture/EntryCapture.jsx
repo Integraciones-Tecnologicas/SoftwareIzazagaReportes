@@ -63,7 +63,7 @@ const EntryCapture = () => {
       return;
     }
     saveReport();
-    navigate("/agendar-cita");
+    navigate("/agendar-cita", { state: { selectedFolio: currentFolio } });
   };
 
   const toggleModal = () => {

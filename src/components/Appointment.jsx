@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useLocation } from "react-router-dom";
 import ErrorMessage from "./ErrorMessage";
 import useStore from "../store/store";
 
 const Appointment = () => {
+  const location = useLocation();
+  const selectedFolio = location.state?.selectedFolio; // Obtener el folio seleccionado desde la navegación
+
   const {
     savedReports,
     appointments,
@@ -32,13 +36,17 @@ const Appointment = () => {
   useEffect(() => {
     const userReports = getReportsByCurrentUser();
     if (userReports.length > 0) {
-      setLatestReport(userReports[userReports.length - 1]);
+      // Cargar el reporte seleccionado o el último reporte si no hay uno seleccionado
+      const reportToLoad = selectedFolio
+        ? userReports.find((report) => report.id === selectedFolio)
+        : userReports[userReports.length - 1];
+      setLatestReport(reportToLoad);
       setPendingReports(userReports.filter((report) => report.status === "pendiente")); // Filtrar reportes pendientes
     } else {
       setLatestReport(null);
       setPendingReports([]);
     }
-  }, [getReportsByCurrentUser, savedReports]);
+  }, [getReportsByCurrentUser, savedReports, selectedFolio]);
 
   // Cargar un reporte pendiente seleccionado
   useEffect(() => {

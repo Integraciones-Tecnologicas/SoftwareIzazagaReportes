@@ -105,7 +105,7 @@ const useStore = create((set, get) => ({
           ...state.entries[existingEntryIndex],
           quantity: entry.quantity,
           id: `ID-${Date.now()}`,
-          folio: state.currentFolio || `FOLIO-${Date.now()}`, // Usar el folio actual o generar uno nuevo
+          folio: state.currentFolio ?? `FOLIO-${Date.now()}`, // Usar el folio actual o generar uno nuevo
           createdBy: state.currentUser,
           status: "pendiente", // Establecer el estado como "pendiente"
         };
