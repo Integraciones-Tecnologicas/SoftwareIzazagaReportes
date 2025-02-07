@@ -7,7 +7,7 @@ const Index = () => {
       style={{ backgroundImage: "url('/bg-login.jpg')" }}
     >
       <div className="container mx-auto px-4">
-        <h1 className="font-black text-4xl text-center text-white mb-10 ">
+        <h1 className="font-black text-4xl text-center text-white mb-20">
           Sistema de Ingreso de Mercancia <br />
           <span className="text-indigo-300 ">Plaza Izazaga</span>
         </h1>

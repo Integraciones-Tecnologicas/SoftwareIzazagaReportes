@@ -4,8 +4,7 @@ import useStore from "../store/store";
 import ErrorMessage from "./ErrorMessage";
 import { toast, ToastContainer } from "react-toastify";
 import { FaUser } from "react-icons/fa"; // Importar el ícono de usuario
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-regular-svg-icons";
+import { MdOutlinePassword } from "react-icons/md";
 
 const FormLogin = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -41,17 +40,16 @@ const FormLogin = () => {
       </div>
       <ToastContainer />
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="mb-5">
-          <label htmlFor="email" className="text-sm uppercase font-bold text-gray-700">
-            Correo Electrónico
-          </label>
+        
+        <div className="flex h-10 items-center rounded-md border-4 border-input bg-white pl-3 text-base ring-offset-background focus-within:ring-1 focus-within:ring-ring focus:border-indigo-500 focus-within:ring-offset-2 bg-white/50">
+          <FaUser/>
           <input
             id="email"
-            className="w-full bg-white/50 p-3 border-white border-4 rounded-md focus:outline-none focus:border-indigo-500"
+            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20"
             type="email"
-            placeholder="Correo Electrónico"
+            placeholder="Usuario"
             {...register("email", { 
-              required: "El correo electrónico es obligatorio"
+              required: "El usuario es obligatorio"
             })}
           />
           {errors.email && (
@@ -60,21 +58,10 @@ const FormLogin = () => {
         </div>
 
         <div className="flex h-10 items-center rounded-md border-4 border-input bg-white pl-3 text-base ring-offset-background focus-within:ring-1 focus-within:ring-ring focus:border-indigo-500 focus-within:ring-offset-2 bg-white/50">
-          < FaUser/>
-        <input
-            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20"
-            type="email"
-            placeholder="Correo Electrónico"
-          />
-        </div>
-
-        <div className="mb-5">
-          <label htmlFor="password" className="text-sm uppercase font-bold text-gray-700">
-            Contraseña
-          </label>
+          <MdOutlinePassword/>
           <input
             id="password"
-            className="w-full bg-white/50 p-3 border-white border-4 rounded-md focus:outline-none focus:border-indigo-500"
+            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20"
             type="password"
             placeholder="Contraseña"
             {...register("password", { required: "La contraseña es obligatoria" })}

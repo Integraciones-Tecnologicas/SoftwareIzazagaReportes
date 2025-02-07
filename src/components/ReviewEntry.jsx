@@ -40,7 +40,7 @@ const ReviewEntry = () => {
                 <input
                     id="searchFolio"
                     type="text"
-                    placeholder="Ejemplo: 10025"
+                    placeholder="Ejemplo: REP-10000273"
                     className="w-full p-2 border border-gray-400 rounded-md"
                     value={searchFolio}
                     onChange={(e) => setSearchFolio(e.target.value)}
@@ -78,6 +78,7 @@ const ReviewEntry = () => {
                                             />
                                             <FontAwesomeIcon icon={faCheck} className="text-green-500" />
                                         </label>
+                                        
                                         <button 
                                             className="bg-blue-500 text-white p-1 rounded"
                                             onClick={() => handleObservation(product.id)}
