@@ -15,29 +15,39 @@ const useStore = create((set, get) => ({
   // Función para agregar locatarios
   addTenant: (tenant) => {
     set((state) => {
-      const existingIndex = state.tenants.findIndex((t) => t.nameTenant === tenant.nameTenant);
+      const existingTenant = state.tenants.find(t => t.nameTenant === tenant.nameTenant);
+      const emailInUse = state.tenants.find(t => t.email === tenant.email && t.nameTenant !== tenant.nameTenant);
 
-      if (existingIndex !== -1) {
-        const updatedTenants = [...state.tenants];
-        updatedTenants[existingIndex] = { ...updatedTenants[existingIndex], ...tenant };
+      if (emailInUse) {
+        alert("Este correo ya está en uso por otro usuario.");
+        return state; // No actualizar ni agregar
+      }
 
-        return { tenants: updatedTenants };
+      if (existingTenant) {
+        // Si el locatario existe, actualizamos sus datos
+        return {
+          tenants: state.tenants.map(t => 
+            t.nameTenant === tenant.nameTenant ? { ...t, ...tenant } : t
+          ),
+        };
       } else {
+        // Si es un nuevo locatario, lo agregamos
         return {
           tenants: [...state.tenants, { ...tenant, id: `TENANT-${Date.now()}` }],
         };
       }
     });
   },
+  
 
   // Función para iniciar sesión
   login: (email, password) => {
     const { tenants, addInProgressReport, getInProgressReport } = get();
     const user = tenants.find((tenant) => tenant.email === email && tenant.password === password);
-
+  
     if (user) {
-      set({ currentUser: user });
-
+      set({ currentUser: { ...user, id: user.id || `USER-${Date.now()}` } }); // Asegurar que el usuario tenga un ID único
+  
       // Recuperar el reporte en progreso del usuario
       const inProgressReport = getInProgressReport(user.id);
       if (inProgressReport) {
@@ -47,10 +57,10 @@ const useStore = create((set, get) => ({
           currentFolio: inProgressReport.id,
         });
       }
-
+  
       return true;
     } else if (email === "admin" && password === "123456") {
-      set({ currentUser: { name: "Admin", role: "admin" } });
+      set({ currentUser: { name: "Admin", role: "admin", id: "admin" } }); // Asignar un ID único al admin
       return true;
     } else {
       return false;
@@ -66,11 +76,11 @@ const useStore = create((set, get) => ({
   addEntry: (entry) => {
     set((state) => {
       const existingEntryIndex = state.entries.findIndex((e) => e.sku === entry.sku);
-
+  
       if (existingEntryIndex >= 0) {
         const updatedEntries = [...state.entries];
         updatedEntries[existingEntryIndex] = { ...updatedEntries[existingEntryIndex], ...entry };
-
+  
         const updatedModifiedEntries = state.modifiedEntries.map((modifiedEntry) => {
           if (modifiedEntry.sku === entry.sku) {
             return {
@@ -81,15 +91,15 @@ const useStore = create((set, get) => ({
           }
           return modifiedEntry;
         });
-
+  
         return { entries: updatedEntries, modifiedEntries: updatedModifiedEntries };
       } else {
         const newEntry = {
           ...entry,
           id: `ID-${Date.now()}`,
-          createdBy: state.currentUser,
+          createdBy: state.currentUser.id || state.currentUser.name, // Asociar el ID o nombre del usuario actual
         };
-
+  
         return { entries: [...state.entries, newEntry] };
       }
     });
@@ -245,7 +255,7 @@ const useStore = create((set, get) => ({
   // Función para obtener solo las entradas creadas por el usuario actual
   getEntriesByCurrentUser: () => {
     const { entries, currentUser } = get();
-    return entries.filter((entry) => entry.createdBy?.id === currentUser?.id);
+    return entries.filter((entry) => entry.createdBy === (currentUser?.id || currentUser?.name));
   },
 
   // Función para obtener solo los reportes creados por el usuario actual

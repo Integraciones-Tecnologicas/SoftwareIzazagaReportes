@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
+import { CiSearch } from "react-icons/ci";
 import useStore from "../store/store";
 import ErrorMessage from "./ErrorMessage";
 import { useState, useEffect } from "react";
@@ -11,6 +12,7 @@ const FormRegister = () => {
     const tenants = useStore((state) => state.tenants);
   
     const nameTenant = watch("nameTenant"); // Escuchar cambios en el input de nombre
+    
   
     useEffect(() => {
       if (nameTenant) {
@@ -19,6 +21,7 @@ const FormRegister = () => {
           // Llenar los demás campos con la información del locatario encontrado
           setValue("email", existingTenant.email);
           setValue("address", existingTenant.address);
+          setValue("password", existingTenant.password);
           setValue("telTenant", existingTenant.telTenant);
           setValue("rfc", existingTenant.rfc);
           setValue("contactName", existingTenant.contactName);
@@ -36,6 +39,7 @@ const FormRegister = () => {
         if (existingTenant) {
             // Llenar automáticamente los campos con los datos del locatario existente
             setValue("email", existingTenant.email);
+            setValue("password", existingTenant.password);
             setValue("address", existingTenant.address);
             setValue("telTenant", existingTenant.telTenant);
             setValue("rfc", existingTenant.rfc);
@@ -49,11 +53,19 @@ const FormRegister = () => {
         reset(); // Limpiar todos los campos
       };
 
-    const registerTenant = (data) => {
-    toast.success('Locatario agregado o actualizado correctamente');
-    addTenant(data); // Guardar o actualizar el locatario en el store
-    reset(); // Limpiar el formulario
-    };
+      const registerTenant = (data) => {
+        const existingTenant = tenants.find(tenant => tenant.nameTenant === data.nameTenant);
+        const emailInUse = tenants.find(tenant => tenant.email === data.email && tenant.nameTenant !== data.nameTenant);
+      
+        if (emailInUse) {
+          toast.error("Este correo ya está registrado por otro locatario. Usa otro.");
+          return;
+        }
+      
+        toast.success(existingTenant ? "Locatario actualizado correctamente" : "Locatario agregado correctamente");
+        addTenant(data);
+        reset();
+      };
     console.log(tenants)
   
     return (
@@ -86,7 +98,7 @@ const FormRegister = () => {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div className="md:col-span-9">
                 <label htmlFor="nameTenant" className="font-bold text-gray-700">
-                  Nombre 
+                  Nombre <CiSearch className="inline text-xl"/>
                 </label>
                 <input  
                   id="nameTenant"
