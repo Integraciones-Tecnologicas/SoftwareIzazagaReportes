@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios'; // Importar axios
 import ErrorMessage from '../ErrorMessage';
+import useStore from '../../store/store';
 
 const Prueba2 = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();

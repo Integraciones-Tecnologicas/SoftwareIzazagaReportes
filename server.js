@@ -12,7 +12,7 @@ app.post('/api/login', async (req, res) => {
   try {
     const { Cuenta, Password } = req.body;
     const response = await axios.post(
-      'http://192.168.0.12/Tarjet_v1.NETFrameworkEnvironment/APIPartner/LoginPartner',
+      'http://192.168.0.12/SISLocatarios01.NETFrameworkEnvironment/APIDatos/Login',
       { Cuenta: Cuenta, Password: Password },
       {
         headers: {

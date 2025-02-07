@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import HomePage from '../Pages/HomePage';
+import HomePage from '../pages/HomePage';
 import FormRegister from "../components/FormRegister";
 import Appointment from "../components/Appointment";
 import EntryCapture from "../components/EntryCapture/EntryCapture";
 import ReviewEntry from "../components/ReviewEntry";
 import Header from "../components/Header"
-import CatalogPage from "../Pages/CatalogPage"
+import CatalogPage from "../pages/CatalogPage"
 
 export const AdminRoutes = () => {
     return (

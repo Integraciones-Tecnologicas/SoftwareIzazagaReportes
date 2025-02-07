@@ -8,6 +8,7 @@ import useStore from "../store/store";
 
 const HomePage = () => {
   const currentUser = useStore((state) => state.currentUser);
+  
 
   return (
     <>
