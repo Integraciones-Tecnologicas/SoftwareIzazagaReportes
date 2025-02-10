@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useStore from "../store/store";
 import ErrorMessage from "./ErrorMessage";
 import { toast, ToastContainer } from "react-toastify";
-import { FaUser } from "react-icons/fa"; // Importar el ícono de usuario
+import { FaUser } from "react-icons/fa"; 
 import { MdOutlinePassword } from "react-icons/md";
 
 const FormLogin = () => {
