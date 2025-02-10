@@ -12,11 +12,14 @@ const useStore = create((set, get) => ({
   currentFolio: null, // Nuevo estado para el folio actual
   inProgressReports: {}, // Reportes en progreso por usuario
 
+  
   // Función para agregar locatarios
   addTenant: (tenant) => {
     set((state) => {
-      const existingTenant = state.tenants.find(t => t.nameTenant === tenant.nameTenant);
-      const emailInUse = state.tenants.find(t => t.email === tenant.email && t.nameTenant !== tenant.nameTenant);
+      const existingTenant = state.tenants.find((t) => t.nameTenant === tenant.nameTenant);
+      const emailInUse = state.tenants.find(
+        (t) => t.email === tenant.email && t.nameTenant !== tenant.nameTenant
+      );
 
       if (emailInUse) {
         alert("Este correo ya está en uso por otro usuario.");
@@ -26,7 +29,7 @@ const useStore = create((set, get) => ({
       if (existingTenant) {
         // Si el locatario existe, actualizamos sus datos
         return {
-          tenants: state.tenants.map(t => 
+          tenants: state.tenants.map((t) =>
             t.nameTenant === tenant.nameTenant ? { ...t, ...tenant } : t
           ),
         };
@@ -37,6 +40,13 @@ const useStore = create((set, get) => ({
         };
       }
     });
+  },
+  
+  // Función para eliminar locatarios
+  deleteTenant: (nameTenant) => {
+      set((state) => ({
+        tenants: state.tenants.filter((tenant) => tenant.nameTenant !== nameTenant),
+      }));
   },
 
   

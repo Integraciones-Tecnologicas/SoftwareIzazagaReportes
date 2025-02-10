@@ -10,9 +10,8 @@ const FormRegister = () => {
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm();
     const addTenant = useStore((state) => state.addTenant);
     const tenants = useStore((state) => state.tenants);
-  
     const nameTenant = watch("nameTenant"); // Escuchar cambios en el input de nombre
-    
+    const deleteTenant = useStore((state) => state.deleteTenant);
   
     useEffect(() => {
         if (nameTenant) {
@@ -93,7 +92,7 @@ const FormRegister = () => {
           }); // Limpiar todos los campos
       };
 
-      const registerTenant = (data) => {
+    const registerTenant = (data) => {
         const existingTenant = tenants.find(tenant => tenant.nameTenant === data.nameTenant);
         const emailInUse = tenants.find(tenant => tenant.email === data.email && tenant.nameTenant !== data.nameTenant);
       
@@ -105,7 +104,26 @@ const FormRegister = () => {
         toast.success(existingTenant ? "Locatario actualizado correctamente" : "Locatario agregado correctamente");
         addTenant(data);
         reset();
-      };
+    };
+
+    const handleDeleteTenant = () => {
+        const confirmDelete = window.confirm(
+          `¿Estás seguro de que deseas eliminar al locatario "${nameTenant}"?`
+        );
+      
+        if (confirmDelete) {
+          // Eliminar el locatario del estado global
+          deleteTenant(nameTenant);
+      
+          // Limpiar el formulario después de eliminar
+          handleClearForm();
+      
+          // Mostrar un mensaje de éxito
+          toast.success(`Locatario "${nameTenant}" eliminado correctamente`);
+        }
+    };
+
+
     console.log(tenants)
   
     return (
@@ -155,14 +173,23 @@ const FormRegister = () => {
                 )}                
             </div>
             <div className="flex justify-between items-center mb-2">
-                    <button 
-                        type="button" 
-                        onClick={handleClearForm} 
-                        className="text-red-500 hover:text-red-700 text-sm"
+                <button
+                    type="button"
+                    onClick={handleClearForm}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                >
+                    ❌ Limpiar
+                </button>
+                {nameTenant && tenants.some(tenant => tenant.nameTenant === nameTenant) && (
+                    <button
+                    type="button"
+                    onClick={handleDeleteTenant}
+                    className="text-red-500 hover:text-red-700 text-sm"
                     >
-                        ❌ Limpiar
+                    🗑️ Eliminar
                     </button>
-                    </div>
+                )}
+            </div>
   
 
             <div className="md:col-span-6">
