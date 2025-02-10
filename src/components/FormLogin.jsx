@@ -34,7 +34,7 @@ const FormLogin = () => {
     <div className="w-full sm:w-4/5 md:w-1/2 lg:w-2/5 bg-white bg-opacity-50 shadow-xl rounded-xl p-8">
       <div className="flex flex-col items-center mb-6">
         <div className="bg-white bg-opacity-60 p-4 -mt-14 rounded-full">
-          <FaUser className="text-white text-3xl" /> {/* Ícono de usuario */}
+          <FaUser className="text-white text-3xl stroke-black stroke-2" /> {/* Ícono de usuario */}
         </div>
         <h2 className="text-3xl font-extrabold text-center mt-4 text-gray-800">Iniciar Sesión</h2>
       </div>

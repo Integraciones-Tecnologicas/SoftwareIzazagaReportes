@@ -15,21 +15,51 @@ const FormRegister = () => {
     
   
     useEffect(() => {
-      if (nameTenant) {
-        const existingTenant = tenants.find(tenant => tenant.nameTenant.toLowerCase() === nameTenant.toLowerCase());
-        if (existingTenant) {
-          // Llenar los demás campos con la información del locatario encontrado
-          setValue("email", existingTenant.email);
-          setValue("address", existingTenant.address);
-          setValue("password", existingTenant.password);
-          setValue("telTenant", existingTenant.telTenant);
-          setValue("rfc", existingTenant.rfc);
-          setValue("contactName", existingTenant.contactName);
-          setValue("telContact", existingTenant.telContact);
-          setValue("local", existingTenant.local);
+        if (nameTenant) {
+            // Buscar coincidencias exactas primero
+            const exactMatch = tenants.find(tenant => tenant.nameTenant.toLowerCase() === nameTenant.toLowerCase());
+            
+            if (exactMatch) {
+            // Si hay una coincidencia exacta, rellenar los campos con esa información
+            setValue("email", exactMatch.email);
+            setValue("address", exactMatch.address);
+            setValue("password", exactMatch.password);
+            setValue("telTenant", exactMatch.telTenant);
+            setValue("rfc", exactMatch.rfc);
+            setValue("contactName", exactMatch.contactName);
+            setValue("telContact", exactMatch.telContact);
+            setValue("local", exactMatch.local);
+            } else {
+            // Si no hay coincidencia exacta, buscar coincidencias parciales
+                const partialMatches = tenants.filter(tenant => tenant.nameTenant.toLowerCase().includes(nameTenant.toLowerCase()));
+                
+                if (partialMatches.length > 0) {
+                    // Si hay coincidencias parciales, rellenar con la primera coincidencia
+                    const firstPartialMatch = partialMatches[0];
+                    setValue("email", firstPartialMatch.email);
+                    setValue("address", firstPartialMatch.address);
+                    setValue("password", firstPartialMatch.password);
+                    setValue("telTenant", firstPartialMatch.telTenant);
+                    setValue("rfc", firstPartialMatch.rfc);
+                    setValue("contactName", firstPartialMatch.contactName);
+                    setValue("telContact", firstPartialMatch.telContact);
+                    setValue("local", firstPartialMatch.local);
+                    } else {
+                        // Si no hay coincidencias, limpiar los campos
+                        reset({
+                        email: "",
+                        address: "",
+                        password: "",
+                        telTenant: "",
+                        rfc: "",
+                        contactName: "",
+                        telContact: "",
+                        local: "",
+                        });
+                    }
+            }
         }
-      }
-    }, [nameTenant, tenants, setValue]);
+    }, [nameTenant, tenants, setValue, reset]);
 
     // Función para manejar cambios en el nombre y llenar campos si el locatario ya existe
     const handleNameChange = (event) => {
@@ -50,7 +80,17 @@ const FormRegister = () => {
     };
 
     const handleClearForm = () => {
-        reset(); // Limpiar todos los campos
+        reset({
+            nameTenant: "",
+            email: "",
+            address: "",
+            password: "",
+            telTenant: "",
+            rfc: "",
+            contactName: "",
+            telContact: "",
+            local: "",
+          }); // Limpiar todos los campos
       };
 
       const registerTenant = (data) => {
@@ -127,7 +167,7 @@ const FormRegister = () => {
 
             <div className="md:col-span-6">
                 <label htmlFor="email" className="font-bold text-gray-700">
-                    E-mail
+                    Usuario
                 </label>
                 <input  
                     id="email"
@@ -135,11 +175,7 @@ const FormRegister = () => {
                     type="email" 
                     placeholder="Email del locatario"
                     {...register('email', {
-                    required: 'La dirección del locatario es Obligatoria',
-                    pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Email no válido"
-                    }
+                    required: 'El Usuario del locatario es Obligatoria'
                     })}
                 />
                 {errors.email && (
