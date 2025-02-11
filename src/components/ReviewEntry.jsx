@@ -31,7 +31,7 @@ const ReviewEntry = () => {
             <h2 className="text-lg font-bold mb-4">REVISIÓN DE INGRESO DE MERCANCÍA</h2>
             <div className="bg-white p-4 shadow rounded mb-4">
                 <p className="font-bold text-center">IMPORTACIONES DE ORIENTE SA DE CV</p>
-                <p className="text-center text-sm">Local - 245</p>
+                <p className="text-center text-sm">Local </p>
             </div>
 
             {/* Input de búsqueda por folio */}

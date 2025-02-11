@@ -9,8 +9,8 @@ const Prueba3 = () => {
   useEffect(() => {
     const fetchLocatarios = async () => {
       const locatariosData = [];
-      let id = 1; // Empezar desde el ID 1
-      const maxAttempts = 3; // Límite máximo de IDs a verificar
+      let id = 3; // Empezar desde el ID 1
+      const maxAttempts = 4; // Límite máximo de IDs a verificar
       let attempts = 0;
       
       try {
@@ -24,6 +24,8 @@ const Prueba3 = () => {
           } catch (error) {
             // Si el servidor devuelve un 404, significa que no hay más locatarios
             if (error.response && error.response.status === 404) {
+              break;
+            } else if (locatariosData.LocatarioId == '0'){
               break;
             } else {
               throw error; // Lanzar otros errores
@@ -65,10 +67,22 @@ const Prueba3 = () => {
               <strong className="text-gray-900">Email:</strong> {locatario.LocatarioEmail}
             </p>
             <p className="text-gray-700">
+              <strong className="text-gray-900">Direccion:</strong> {locatario.LocatarioDireccion}
+            </p>
+            <p className="text-gray-700">
               <strong className="text-gray-900">Teléfono:</strong> {locatario.LocatarioTelefono}
             </p>
             <p className="text-gray-700">
               <strong className="text-gray-900">RFC:</strong> {locatario.LocatarioRFC}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">NomContacto:</strong> {locatario.LocatarioNomContacto}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">TelContacto:</strong> {locatario.LocatarioTelContacto}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">LocatarioActivo:</strong> {locatario.LocatarioActivo}
             </p>
           </div>
         ))}
