@@ -368,8 +368,8 @@ const FormRegister = () => {
                                     {...register('observ')}
                                 ></textarea>
 
-                                {errors.telContact && (
-                                    <ErrorMessage>{errors.telContact?.message}</ErrorMessage>
+                                {errors.observ && (
+                                    <ErrorMessage>{errors.observ?.message}</ErrorMessage>
                                 )} 
                             </div>
 
