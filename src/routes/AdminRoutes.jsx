@@ -6,6 +6,7 @@ import EntryCapture from "../components/EntryCapture/EntryCapture";
 import ReviewEntry from "../components/ReviewEntry";
 import Header from "../components/Header"
 import CatalogPage from "../pages/CatalogPage"
+import ReportPage from '../pages/ReportPage';
 
 export const AdminRoutes = () => {
     return (
@@ -19,6 +20,7 @@ export const AdminRoutes = () => {
                 <Route path='/catalogo-productos' element={<CatalogPage />} />
                 <Route path='/captura-entrada' element={<EntryCapture />} />
                 <Route path='/revision-ingreso' element={<ReviewEntry />} />
+                <Route path='/reportes' element={<ReportPage />} />
 
                 <Route path='*' element={<Navigate to='/' replace />} />
             </Routes>

@@ -186,7 +186,7 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
             type="file"
             id="images"
             className="w-full md:w-3/4 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-            accept="image/*"
+            accept="image/*"            
             multiple
             {...register('images')}
           />

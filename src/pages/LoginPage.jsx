@@ -4,7 +4,7 @@ const Index = () => {
   return (
     <div 
       className="min-h-screen flex items-center justify-center bg-cover bg-center" 
-      style={{ backgroundImage: "url('/bg-login.jpg')" }}
+      style={{ backgroundImage: "url('/bg-login.webp')" }}
     >
       <div className="container mx-auto px-4">
         <h1 className="font-black text-4xl text-center text-white mb-20">
