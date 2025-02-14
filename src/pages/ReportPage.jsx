@@ -1,11 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useStore from '../store/store';
+import axios from 'axios';
 
 const ReportPage = () => {
-    const { savedReports, currentUser, appointments, tenants, entries } = useStore();
+    const { savedReports, currentUser, appointments, entries } = useStore();
     const [reportType, setReportType] = useState('citas'); // Estado para el tipo de reporte
     const [filter, setFilter] = useState('all'); // Estado para el filtro de estado
     const [searchTerm, setSearchTerm] = useState(''); // Estado para la búsqueda
+
+    const [locatarios, setLocatarios] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchLocatarios = async () => {
+        const locatariosData = [];
+        let id = 1; // Empezar desde el ID 1
+        const maxAttempts = 7; // Límite máximo de IDs a verificar
+        let attempts = 0;
+        
+        try {
+            while (attempts < maxAttempts) {
+            try {
+                const response = await axios.get(
+                `http://localhost:5000/api/locatario/${id}`
+                );
+                locatariosData.push(response.data); // Agregar el locatario al array
+                id++; // Incrementar el ID para la siguiente solicitud
+            } catch (error) {
+                // Si el servidor devuelve un 404, significa que no hay más locatarios
+                if (error.response && error.response.status === 404) {
+                break;
+                } else if (locatariosData.LocatarioId == '0'){
+                break;
+                } else {
+                throw error; // Lanzar otros errores
+                }
+            }
+            attempts++;
+            }
+
+            setLocatarios(locatariosData); // Actualizar el estado con los locatarios obtenidos
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+        };
+
+        fetchLocatarios();
+    }, []);
+
+    if (loading) return <p className="text-center text-gray-600">Cargando...</p>;
+    if (error) return <p className="text-center text-red-600">Error: {error}</p>;
 
     // Función para obtener la fecha formateada
     const getFormattedDate = (dateString) => {
@@ -35,7 +82,7 @@ const ReportPage = () => {
     // Renderizar el reporte seleccionado
     const renderReport = () => {
         const productsToShow = entries ; // Manejo de products undefined
-        const tenantsToShow = tenants || []; // Manejo de tenants undefined
+        const tenantsToShow = locatarios || []; // Manejo de tenants undefined
         const appointmentsToShow = appointments || []; // Manejo de appointments undefined
 
         switch (reportType) {
@@ -71,9 +118,9 @@ const ReportPage = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-600">
                             {tenantsToShow.map((tenant) => (
-                                <tr key={tenant.id}>
-                                    <td className="px-6 py-4 text-sm text-gray-900">{tenant.nameTenant}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-900">{tenant.email}</td>
+                                <tr key={tenant.LocatarioId}>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{tenant.LocatarioNombre}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{tenant.LocatarioEmail}</td>
                                 </tr>
                             ))}
                         </tbody>
