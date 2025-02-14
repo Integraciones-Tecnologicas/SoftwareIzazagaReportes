@@ -14,7 +14,7 @@ const CatalogPage = () => {
   const fetchProductos = async () => {
     const productosData = []; // Array para almacenar los productos
     let id = 1; // Empezar desde el ID 1
-    const maxAttempts = 25; // Límite máximo de IDs a verificar
+    const maxAttempts = 20; // Límite máximo de IDs a verificar
     let attempts = 0;
 
     try {
