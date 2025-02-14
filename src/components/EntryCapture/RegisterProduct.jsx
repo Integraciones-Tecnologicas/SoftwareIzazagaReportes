@@ -1,48 +1,75 @@
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import useStore from "../../store/store"; // Importamos el store
+import axios from "axios";
 import ErrorMessage from "../ErrorMessage";
 
-const RegisterProduct = ({ toggleModal, initialData }) => {
+const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const addEntry = useStore((state) => state.addEntry); // Obtenemos la función para agregar entradas
-  const updateEntry = useStore((state) => state.addEntry); // Usa la misma función de store para actualización
-  const entries = useStore((state) => state.entries); // Obtener la lista de productos
 
   // Si initialData está presente, reseteamos el formulario con los datos de la entrada
   useEffect(() => {
     if (initialData) {
-      reset(initialData); // Rellena los campos con los datos existentes
+      reset(initialData);
     }
   }, [initialData, reset]);
 
-  const registerProduct = (data) => {
-    const existingEntry = entries.find((entry) => entry.sku === data.sku);
-  
-    if (!initialData && existingEntry) {
-      toast.error("El SKU ya existe. Ingresa un SKU diferente.");
-      return;
-    }
-  
-    if (initialData) {
-      toast.success("Producto actualizado correctamente");
-      updateEntry(data);
-    } else {
+  const registerProduct = async (data) => {
+    try {
+      const productoData = {
+        LocatarioId: "1",
+        ProdsSKU: data.sku,
+        ProdsDescrip: data.description,
+        ProdsLinea: data.line,
+        ProdsFamilia: data.subfamily,
+        ProdsCosto: data.cost,
+        ProdsPrecio1: data.price,
+        ProdsPrecio2: data.price,
+        ProdsPrecio3: data.price,
+        ProdsChek1: data.piracy ? "true" : "false",
+        ProdsObserv: data.observations || "Ninguna",
+        ProdsExistencia: "0",
+      };
+
+      console.log("Datos enviados a la API:", productoData); // Depuración
+
+      const response = await axios.post(
+        "http://localhost:5000/api/crear-producto",
+        productoData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Respuesta de la API:", response.data); // Depuración
+
       toast.success("Producto creado correctamente");
-      addEntry(data);
+      reset();
+      toggleModal();
+
+      // Llamar a la función de actualización
+      if (onProductCreated) {
+        onProductCreated();
+      }
+    } catch (error) {
+      console.error("Error al crear el producto:", error);
+      if (error.response) {
+        console.error("Respuesta de error de la API:", error.response.data); // Depuración
+        toast.error(`Error: ${error.response.data.message || "Error desconocido"}`);
+      } else {
+        toast.error("Error de conexión con la API");
+      }
     }
-  
-    reset();
-    toggleModal();
   };
 
   return (
     <div className="max-w-4xl mx-auto my-3 bg-white shadow-lg rounded-lg p-6">
       <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">
         {initialData ? "Editar Producto" : "Alta de Productos"}
-      <ToastContainer />
       </h2>
+      <ToastContainer />
 
       <form className="space-y-6 bg-white" onSubmit={handleSubmit(registerProduct)}>
         {/* Descripción */}
@@ -62,7 +89,7 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
 
         {/* SKU */}
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-          <label htmlFor="description" className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase">
+          <label htmlFor="sku" className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase">
             SKU:
           </label>
           <input
@@ -90,10 +117,7 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
           />
           {errors.cost && <ErrorMessage>{errors.cost.message}</ErrorMessage>}
 
-          <label
-            htmlFor="price"
-            className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase"
-          >
+          <label htmlFor="price" className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase">
             Precio V:
           </label>
           <input
@@ -102,22 +126,14 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
             min={0}
             className="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Precio de Venta"
-            {...register('price', {
-              required: 'El precio de venta es obligatorio'
-            })}
+            {...register("price", { required: "El precio de venta es obligatorio" })}
           />
-
-          {errors.price && (
-            <ErrorMessage>{errors.price?.message}</ErrorMessage>
-          )}
+          {errors.price && <ErrorMessage>{errors.price.message}</ErrorMessage>}
         </div>
 
         {/* Línea */}
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-          <label
-            htmlFor="line"
-            className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase"
-          >
+          <label htmlFor="line" className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase">
             Línea:
           </label>
           <input
@@ -125,22 +141,14 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
             id="line"
             className="w-full md:w-3/4 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Línea del producto"
-            {...register('line', {
-              required: 'La línea del es obligatorio'
-            })}
+            {...register("line", { required: "La línea es obligatoria" })}
           />
-
-            {errors.line && (
-              <ErrorMessage>{errors.line?.message}</ErrorMessage>
-            )}
+          {errors.line && <ErrorMessage>{errors.line.message}</ErrorMessage>}
         </div>
 
         {/* Subfamilia */}
         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-          <label
-            htmlFor="subfamily"
-            className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase"
-          >
+          <label htmlFor="subfamily" className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase">
             Subfamilia:
           </label>
           <input
@@ -148,14 +156,9 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
             id="subfamily"
             className="w-full md:w-3/4 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Subfamilia del producto"
-            {...register('subfamily', {
-              required: 'La subfamilia es obligatoria'
-            })}
+            {...register("subfamily", { required: "La subfamilia es obligatoria" })}
           />
-
-            {errors.subfamily && (
-              <ErrorMessage>{errors.subfamily?.message}</ErrorMessage>
-            )}
+          {errors.subfamily && <ErrorMessage>{errors.subfamily.message}</ErrorMessage>}
         </div>
 
         {/* Piratería */}
@@ -164,47 +167,23 @@ const RegisterProduct = ({ toggleModal, initialData }) => {
             type="checkbox"
             id="piracy"
             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            {...register('piracy')}
+            {...register("piracy")}
           />
-          <label
-            htmlFor="piracy"
-            className="text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="piracy" className="text-sm font-medium text-gray-700">
             Podría ser considerado piratería
           </label>
         </div>
 
-        {/* Subir imágenes */}
-        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-          <label
-            htmlFor="images"
-            className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase"
-          >
-            Subir imágenes (máximo 3):
-          </label>
-          <input
-            type="file"
-            id="images"
-            className="w-full md:w-3/4 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-            accept="image/*"            
-            multiple
-            {...register('images')}
-          />
-        </div>
-
         {/* Observaciones */}
         <div className="flex flex-col">
-          <label
-            htmlFor="observations"
-            className="text-sm font-semibold text-gray-700 uppercase"
-          >
+          <label htmlFor="observations" className="text-sm font-semibold text-gray-700 uppercase">
             Observaciones:
           </label>
           <textarea
             id="observations"
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"
             placeholder="Observaciones adicionales"
-            {...register('observations')}
+            {...register("observations")}
           ></textarea>
         </div>
 

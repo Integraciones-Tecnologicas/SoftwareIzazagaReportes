@@ -45,7 +45,7 @@ const FormLogin = () => {
           <FaUser/>
           <input
             id="email"
-            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20"
+            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20 ml-2"
             type="email"
             placeholder="Usuario"
             {...register("email", { 
@@ -61,7 +61,7 @@ const FormLogin = () => {
           <MdOutlinePassword/>
           <input
             id="password"
-            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20"
+            className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 bg-white/20 ml-2"
             type="password"
             placeholder="Contraseña"
             {...register("password", { required: "La contraseña es obligatoria" })}
