@@ -4,6 +4,7 @@ import Appointment from "../components/Appointment";
 import EntryCapture from "../components/EntryCapture/EntryCapture";
 import Header from "../components/Header"
 import CatalogPage from '../pages/CatalogPage';
+import ReportPage from '../pages/ReportPage';
 
 const PrivateRoutes = () => {
     return (
