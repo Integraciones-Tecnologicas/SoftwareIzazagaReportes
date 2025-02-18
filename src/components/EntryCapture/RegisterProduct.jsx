@@ -7,7 +7,6 @@ import ErrorMessage from "../ErrorMessage";
 const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  // Si initialData está presente, reseteamos el formulario con los datos de la entrada
   useEffect(() => {
     if (initialData) {
       reset(initialData);
@@ -17,7 +16,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const registerProduct = async (data) => {
     try {
       const productoData = {
-        ProdId: initialData ? initialData.ProdId : "",  // Si se está editando, usar ProdId de initialData
+        ProdId: initialData?.ProdId || null,  // Solo se envía si es actualización
         LocatarioId: "1",
         ProdsSKU: data.sku,
         ProdsDescrip: data.description,
@@ -32,38 +31,35 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
         ProdsExistencia: "0",
       };
 
-      console.log("Datos enviados a la API:", productoData); // Depuración
+      console.log("Datos enviados a la API:", productoData);
 
-      const response = await axios.post(
-        "http://localhost:5000/api/actualizar-producto",
-        productoData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const endpoint = initialData?.ProdId
+        ? "http://localhost:5000/api/actualizar-producto"
+        : "http://localhost:5000/api/crear-producto";
 
-      console.log("Respuesta de la API:", response.data); // Depuración
+      const response = await axios.post(endpoint, productoData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      toast.success(initialData ? "Producto actualizado correctamente" : "Producto creado correctamente");
+      console.log("Respuesta de la API:", response.data);
+
+      toast.success(initialData?.ProdId ? "Producto actualizado" : "Producto creado");
       reset();
       toggleModal();
 
-      // Llamar a la función de actualización
       if (onProductCreated) {
         onProductCreated();
       }
     } catch (error) {
-      console.error("Error al crear/actualizar el producto:", error);
+      console.error("Error:", error);
       if (error.response) {
-        console.error("Respuesta de error de la API:", error.response.data); // Depuración
         toast.error(`Error: ${error.response.data.message || "Error desconocido"}`);
       } else {
         toast.error("Error de conexión con la API");
       }
     }
   };
+
 
   return (
     <div className="max-w-4xl mx-auto my-3 bg-white shadow-lg rounded-lg p-6">
