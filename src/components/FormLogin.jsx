@@ -19,7 +19,6 @@ const FormLogin = () => {
       const isAuthenticated = await login(email, password);
 
       if (isAuthenticated) {
-        toast.success("Inicio de sesión exitoso");
         navigate("/"); // Redirigir al home después del login
       } else {
         toast.error("Credenciales incorrectas");

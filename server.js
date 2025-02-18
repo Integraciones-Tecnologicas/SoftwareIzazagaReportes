@@ -244,6 +244,51 @@ app.get('/api/eliminar-producto', async (req, res) => {
   }
 });
 
+//Actualizar producto
+app.post('/api/actualizar-producto', async (req, res) => {
+  try {
+    const productoData = req.body; // Los datos del producto vienen en el cuerpo de la solicitud
+
+    const response = await axios.post(
+      `${APICatalogos}/ActualizaProd`,
+      {
+        SDTProd: {
+          ProdId: productoData.ProdId,
+          LocatarioId: productoData.LocatarioId,
+          ProdsSKU: productoData.ProdsSKU,
+          ProdsDescrip: productoData.ProdsDescrip,
+          ProdsLinea: productoData.ProdsLinea,
+          ProdsFamilia: productoData.ProdsFamilia,
+          ProdsCosto: productoData.ProdsCosto,
+          ProdsPrecio1: productoData.ProdsPrecio1,
+          ProdsPrecio2: productoData.ProdsPrecio2,
+          ProdsPrecio3: productoData.ProdsPrecio3,
+          ProdsChek1: productoData.ProdsChek1,
+          ProdsObserv: productoData.ProdsObserv,
+          ProdsExistencia: productoData.ProdsExistencia,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json', // Especifica el tipo de contenido
+        },
+      }
+    );
+
+    res.status(200).json(response.data); // Devuelve la respuesta de la API externa
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
 });

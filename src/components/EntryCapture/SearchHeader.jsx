@@ -240,7 +240,20 @@ const SearchHeader = ({ toggleModal }) => {
       {editModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-200 rounded-xl shadow-lg p-8 w-full max-w-4xl relative overflow-y-auto max-h-screen">
-            <RegisterProduct toggleModal={closeUpdateModal} initialData={selectedEntry} />
+            <RegisterProduct
+              toggleModal={closeUpdateModal}
+              initialData={{
+                ProdId: selectedEntry?.ProdId, // Asegúrate de incluir ProdId
+                sku: selectedEntry?.ProdsSKU,
+                description: selectedEntry?.ProdsDescrip,
+                cost: selectedEntry?.ProdsCosto,
+                price: selectedEntry?.ProdsPrecio1,
+                line: selectedEntry?.ProdsLinea,
+                subfamily: selectedEntry?.ProdsFamilia,
+                piracy: selectedEntry?.ProdsChek1 === "true",
+                observations: selectedEntry?.ProdsObserv,
+              }}
+            />
             <button
               onClick={closeUpdateModal}
               className="absolute text-2xl top-2 right-2 text-gray-500 hover:text-gray-700"

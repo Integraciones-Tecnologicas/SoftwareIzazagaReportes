@@ -17,6 +17,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const registerProduct = async (data) => {
     try {
       const productoData = {
+        ProdId: initialData ? initialData.ProdId : "",  // Si se está editando, usar ProdId de initialData
         LocatarioId: "1",
         ProdsSKU: data.sku,
         ProdsDescrip: data.description,
@@ -34,7 +35,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
       console.log("Datos enviados a la API:", productoData); // Depuración
 
       const response = await axios.post(
-        "http://localhost:5000/api/crear-producto",
+        "http://localhost:5000/api/actualizar-producto",
         productoData,
         {
           headers: {
@@ -45,7 +46,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
 
       console.log("Respuesta de la API:", response.data); // Depuración
 
-      toast.success("Producto creado correctamente");
+      toast.success(initialData ? "Producto actualizado correctamente" : "Producto creado correctamente");
       reset();
       toggleModal();
 
@@ -54,7 +55,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
         onProductCreated();
       }
     } catch (error) {
-      console.error("Error al crear el producto:", error);
+      console.error("Error al crear/actualizar el producto:", error);
       if (error.response) {
         console.error("Respuesta de error de la API:", error.response.data); // Depuración
         toast.error(`Error: ${error.response.data.message || "Error desconocido"}`);
