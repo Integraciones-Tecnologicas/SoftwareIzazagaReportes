@@ -3,50 +3,58 @@ import axios from "axios";
 import RegisterProduct from "../components/EntryCapture/RegisterProduct";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile } from "@fortawesome/free-regular-svg-icons";
+import useStore from "../store/store";
+import { ToastContainer, toast } from "react-toastify";
 
 const CatalogPage = () => {
   const [productos, setProductos] = useState([]); // Estado para almacenar los productos
   const [loading, setLoading] = useState(true); // Estado para manejar la carga
   const [error, setError] = useState(null); // Estado para manejar errores
   const [isModalOpen, setModalOpen] = useState(false);
-
+  const currentUser = useStore((state) => state.currentUser);
+ 
   // Función para obtener los productos
   const fetchProductos = async () => {
-    const productosData = []; // Array para almacenar los productos
-    let id = 1; // Empezar desde el ID 1
-    const maxAttempts = 20; // Límite máximo de IDs a verificar
-    let attempts = 0;
-
     try {
-      while (attempts < maxAttempts) {
-        try {
-          const response = await axios.get(
-            `http://localhost:5000/api/producto/${id}`
-          );
-          // Verificar si el producto es válido (puedes ajustar esta lógica según tu API)
-          if (response.data && response.data.ProdsDescrip) {
-            productosData.push(response.data); // Agregar el producto al array
-          }
-          console.log(productosData);
-          id++; // Incrementar el ID para la siguiente solicitud
-        } catch (error) {
-          // Si el servidor devuelve un 404, significa que no hay más productos
-          if (error.response && error.response.status === 404) {
-            break;
-          } else {
-            throw error; // Lanzar otros errores
-          }
-        }
-        attempts++;
+      const response = await axios.get("http://localhost:5000/productos", {
+        params: { LocatarioId: 0 },
+      });
+      
+      // Verificar que la respuesta contiene el arreglo 'SDTProds'
+      if (response.data.SDTProds && Array.isArray(response.data.SDTProds)) {
+        setProductos(response.data.SDTProds); // Usar el arreglo de productos
+      } else {
+        throw new Error("No se encontraron productos.");
       }
-
-      setProductos(productosData); // Actualizar el estado con los productos obtenidos
     } catch (error) {
       setError(error.message); // Manejar errores
     } finally {
       setLoading(false); // Finalizar la carga
     }
   };
+  
+  const handleEliminarProducto = async (sku) => {
+    try {
+      const Locatarioid = 1; // Valor fijo por ahora
+  
+      // Confirmación antes de eliminar
+      const confirmacion = window.confirm(`¿Seguro que deseas eliminar el producto con SKU: ${sku}?`);
+      if (!confirmacion) return;
+  
+      const response = await axios.get(
+        `http://localhost:5000/api/eliminar-producto?Locatarioid=${Locatarioid}&Prodssku=${sku}`
+      );
+  
+      toast.success("Producto eliminado correctamente");
+      
+      // Actualizar la lista de productos
+      fetchProductos();
+    } catch (error) {
+      console.error("Error al eliminar producto:", error);
+      toast("Error al eliminar el producto");
+    }
+  };
+  
 
   // Cargar los productos cuando el componente se monta
   useEffect(() => {
@@ -66,9 +74,9 @@ const CatalogPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-5 bg-white shadow-md rounded-lg p-6">
+    <div className="max-w-6xl mx-auto mt-5 bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Productos Registrados</h2>
-
+      <ToastContainer />
       <div className="md:col-span-2 py-2">
         <button onClick={toggleModal} className="text-blue-600 hover:text-blue-800">
           <FontAwesomeIcon icon={faFile} size="3x" />
@@ -91,6 +99,10 @@ const CatalogPage = () => {
                 <th className="px-4 py-3 border-b">Piratería</th>
                 <th className="px-4 py-3 border-b">Imagen</th>
                 <th className="px-4 py-3 border-b">Observaciones</th>
+                {currentUser.role === "admin" ? (
+                <th className="px-4 py-3 border-b">Locatario</th>
+                ) : ("")}
+                <th className="px-4 py-3 border-b">Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -105,6 +117,15 @@ const CatalogPage = () => {
                   <td className="px-4 py-3 border-b">{producto.ProdsChek1 ? "Sí" : "No"}</td>
                   <td className="px-4 py-3 border-b">{producto.imagen}</td>
                   <td className="px-4 py-3 border-b">{producto.ProdsObserv || "N/A"}</td>
+                  {currentUser.role === "admin" ? (
+                    <td className="px-4 py-3 border-b">{producto.LocatarioId} </td>
+                  ) : ("")}
+                  <td className="px-4 py-3 border-b">
+                    <button
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
+                      onClick={() => handleEliminarProducto(producto.ProdsSKU)}
+                    >Eliminar </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
