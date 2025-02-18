@@ -8,10 +8,17 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
   useEffect(() => {
+    console.log("useEffect ejecutado. initialData:", initialData);
+  
     if (initialData) {
-      reset(initialData);
+      reset({
+        ...initialData,
+        piracy: Boolean(initialData.piracy), // Asegura que sea true o false
+      });
     }
   }, [initialData, reset]);
+  
+  
 
   const registerProduct = async (data) => {
     try {
@@ -59,7 +66,6 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
       }
     }
   };
-
 
   return (
     <div className="max-w-4xl mx-auto my-3 bg-white shadow-lg rounded-lg p-6">
@@ -165,6 +171,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
             id="piracy"
             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
             {...register("piracy")}
+            defaultChecked={initialData?.piracy} // Se asegura que se marque o desmarque correctamente
           />
           <label htmlFor="piracy" className="text-sm font-medium text-gray-700">
             Podría ser considerado piratería

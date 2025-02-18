@@ -250,7 +250,7 @@ const SearchHeader = ({ toggleModal }) => {
                 price: selectedEntry?.ProdsPrecio1,
                 line: selectedEntry?.ProdsLinea,
                 subfamily: selectedEntry?.ProdsFamilia,
-                piracy: selectedEntry?.ProdsChek1 === "true",
+                piracy: Boolean(selectedEntry?.ProdsChek1),
                 observations: selectedEntry?.ProdsObserv,
               }}
             />
