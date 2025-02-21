@@ -288,6 +288,78 @@ app.post('/api/actualizar-producto', async (req, res) => {
   }
 });
 
+// Crear una parte de entrada
+app.post('/api/crear-part-entrada', async (req, res) => {
+  try {
+    const { EntradaId, PartEntProdId, PartEntCant, PartEntCheck, PartEntObserv } = req.body;
+
+    const response = await axios.post(
+      `${APIDatos}/CrearPartEntrada`,
+      {
+        SDTPartEntrada: {
+          EntradaId,
+          PartEntProdId,
+          PartEntCant,
+          PartEntCheck,
+          PartEntObserv,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error al crear parte de entrada:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
+// Crear una entrada
+app.post('/api/crear-entrada', async (req, res) => {
+  try {
+    const { LocatarioId, EntradaFechaCap, EntradaHoraCita, EntradaTipoDuracion, EntradaObserv } = req.body;
+
+    const response = await axios.post(
+      `${APIDatos}/CrearEntrada`,
+      {
+        SDTEntrada: {
+          LocatarioId,
+          EntradaFechaCap,
+          EntradaHoraCita,
+          EntradaTipoDuracion,
+          EntradaObserv,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error al crear entrada:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
