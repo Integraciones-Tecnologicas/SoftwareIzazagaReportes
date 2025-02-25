@@ -149,6 +149,12 @@ const EntryCapture = () => {
     }
   };
 
+  const handleDeletePartida = (PartEntId) => {
+    setPartidas((prevPartidas) =>
+      prevPartidas.filter((partida) => partida.PartEntId !== PartEntId)
+    );
+  };
+
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
   };
@@ -190,7 +196,11 @@ const EntryCapture = () => {
         <p className="text-center text-gray-500">No hay entradas registradas.</p>
       ) : (
         <>
-          <EntriesTable partidas={partidas} />
+          <EntriesTable
+            partidas={partidas} // Pasar las partidas
+            entradaId={entradaId} // Pasar el EntradaId
+            onDelete={handleDeletePartida}
+          />
   
           <div className="mt-4 py-4">
             <label className="block font-semibold text-gray-700 mb-2">

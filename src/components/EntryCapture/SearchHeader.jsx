@@ -79,15 +79,30 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
   // Manejar cambios en los inputs
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    if (id === "sku" && value.length > 2) {
-      // Buscar solo si el SKU tiene más de 2 caracteres
-      buscarProducto(value);
+  
+    if (id === "sku") {
+      if (value.length > 2) {
+        buscarProducto(value);
+      } else if (value === "") {
+        // Limpiar todos los campos excepto la cantidad si el SKU está vacío
+        setFormData({
+          sku: "",
+          description: "",
+          cost: "",
+          price: "",
+          quantity: formData.quantity, // Mantener la cantidad actual
+        });
+        setSelectedEntry(null);
+        setUpdate(false);
+      }
     }
+  
     setFormData((prevData) => ({
       ...prevData,
       [id]: value,
     }));
   };
+  
 
   // Manejar cambios en la cantidad
   const handleQuantityChange = (e) => {

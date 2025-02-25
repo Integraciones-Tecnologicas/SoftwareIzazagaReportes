@@ -1,8 +1,37 @@
-import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios"; // Importar axios para hacer solicitudes HTTP
 
-const EntriesTable = ({ partidas }) => {
+const EntriesTable = ({ partidas, entradaId, onDelete }) => {
+  // Función para manejar la eliminación de una partida
+  const handleDelete = async (PartEntId) => {
+    try {
+
+      // Validar que entradaId y PartEntId estén definidos
+      if (!entradaId || !PartEntId) {
+        alert("Error: Faltan parámetros para eliminar la partida");
+        return;
+      }
+
+      // Hacer la solicitud GET al endpoint para eliminar la entrada
+      const response = await axios.get(`http://localhost:5000/api/eliminar-entrada`, {
+        params: { Entradaid: entradaId, PartEntId }, // Pasar los parámetros en la URL
+      });
+
+      // Si la eliminación fue exitosa, llamar a la función onDelete para actualizar el estado
+      if (response.status === 200) {
+        onDelete(PartEntId); // Notificar al componente padre que se eliminó una partida
+        alert("Partida eliminada correctamente");
+      }
+    } catch (error) {
+      console.error("Error al eliminar la partida:", error);
+      if (error.response) {
+        console.error("Respuesta del error:", error.response.data); // Verificar la respuesta de error
+      }
+      alert("Hubo un error al eliminar la partida");
+    }
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border border-gray-300">
@@ -32,7 +61,7 @@ const EntriesTable = ({ partidas }) => {
               <td className="px-4 py-2 border border-gray-300">{partida.PartEntObserv}</td>
               <td className="px-4 py-2 border border-gray-300 text-center">
                 <button
-                  onClick={() => console.log("Eliminar partida:", partida.PartEntId)}
+                  onClick={() => handleDelete(partida.PartEntId)} // Solo se pasa PartEntId
                   className="text-red-600 hover:text-red-800"
                 >
                   <FontAwesomeIcon icon={faTrash} />
