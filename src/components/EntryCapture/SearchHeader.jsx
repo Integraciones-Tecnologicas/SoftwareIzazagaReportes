@@ -4,8 +4,9 @@ import { faMagnifyingGlass, faFile, faEdit } from "@fortawesome/free-solid-svg-i
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import RegisterProduct from "./RegisterProduct";
+import useStore from "../../store/store";
 
-const SearchHeader = ({ toggleModal }) => {
+const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) => {
   const [formData, setFormData] = useState({
     sku: "",
     description: "",
@@ -23,14 +24,14 @@ const SearchHeader = ({ toggleModal }) => {
       const response = await axios.get(`http://localhost:5000/api/buscar-producto`, {
         params: { Locatarioid: 1, Prodssku: sku },
       });
-  
+
       // Verificar si la respuesta contiene productos
       if (response.data && response.data.SDTProds && response.data.SDTProds.length > 0) {
         // Buscar el producto que coincida con el SKU
         const productoEncontrado = response.data.SDTProds.find(
           (producto) => producto.ProdsSKU === sku
         );
-  
+
         if (productoEncontrado) {
           // Si se encuentra el producto, llenar los campos del formulario
           setFormData({
@@ -97,19 +98,74 @@ const SearchHeader = ({ toggleModal }) => {
     }));
   };
 
-  // Agregar cantidad (aquí podrías hacer una llamada a la API para actualizar la cantidad)
-  const handleAddQuantity = () => {
+  // Agregar cantidad
+  const handleAddQuantity = async () => {
     if (formData.sku && formData.quantity) {
-      toast.success("Cantidad agregada correctamente.");
-      setFormData((prevData) => ({
-        ...prevData,
-        quantity: "",
-      }));
+      try {
+        let entradaIdToUse = entradaId;
+  
+        // Si no hay un EntradaId, crea una nueva entrada
+        if (!entradaIdToUse) {
+          const entradaResponse = await axios.post('http://localhost:5000/api/crear-entrada', {
+            SDTEntrada: {
+              LocatarioId: "1", // Asegúrate de que este valor sea correcto
+              LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
+              EntradaFechaCap: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+              EntradaHoraCita: "16:00:00", // Hora seleccionada por el usuario
+              EntradaTipoDuracion: "A", // Tipo de duración (puedes ajustar esto)
+              EntradaObserv: "Ninguna", // Observaciones (opcional)
+            },
+          });
+  
+          entradaIdToUse = entradaResponse.data.EntradaId; // Guarda el EntradaId generado
+          setEntradaId(entradaIdToUse); // Actualiza el estado
+        }
+  
+        // Agrega la parte de entrada
+        const partResponse = await axios.post('http://localhost:5000/api/crear-part-entrada', {
+          EntradaId: entradaIdToUse,
+          PartEntProdId: selectedEntry?.ProdId, // Usar el ID del producto (ProdId) en lugar del SKU
+          PartEntCant: formData.quantity, // Cantidad ingresada
+          PartEntCheck: "true", // Puedes ajustar esto según tu lógica
+          PartEntObserv: "Ninguna", // Observaciones (opcional)
+        });
+  
+        console.log("Parte de entrada creada:", partResponse.data);
+  
+        // Actualizar las partidas después de agregar una nueva
+        fetchEntrada(entradaIdToUse);
+  
+        // Crear un objeto de entrada modificada
+        const newEntry = {
+          id: `ID-${Date.now()}`, // Generar un ID único
+          sku: formData.sku,
+          description: formData.description,
+          cost: formData.cost,
+          price: formData.price,
+          quantity: formData.quantity,
+          line: selectedEntry?.ProdsLinea || "N/A",
+          subfamily: selectedEntry?.ProdsFamilia || "N/A",
+          piracy: Boolean(selectedEntry?.ProdsChek1),
+          observations: selectedEntry?.ProdsObserv || "N/A",
+        };
+  
+        // Actualizar el estado global modifiedEntries
+        useStore.getState().updateModifiedEntries(newEntry);
+  
+        toast.success("Cantidad agregada correctamente.");
+        setFormData((prevData) => ({
+          ...prevData,
+          quantity: "", // Limpiar el campo de cantidad
+        }));
+      } catch (error) {
+        console.error("Error al agregar cantidad:", error);
+        toast.error("Hubo un error al agregar la cantidad.");
+      }
     } else {
       toast.error("Debes ingresar un SKU y una cantidad.");
     }
   };
-
+  
   // Abrir modal de edición
   const openUpdateModal = () => {
     setEditModalOpen(true);

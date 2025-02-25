@@ -293,6 +293,7 @@ app.post('/api/crear-part-entrada', async (req, res) => {
   try {
     const { EntradaId, PartEntProdId, PartEntCant, PartEntCheck, PartEntObserv } = req.body;
 
+    // Llamar al endpoint CrearPartEntrada en el servidor externo
     const response = await axios.post(
       `${APIDatos}/CrearPartEntrada`,
       {
@@ -311,7 +312,9 @@ app.post('/api/crear-part-entrada', async (req, res) => {
       }
     );
 
-    res.status(200).json(response.data);
+    console.log("Respuesta del servidor externo:", response.data); // Verifica la respuesta del servidor externo
+
+    res.status(200).json(response.data); // Envía la respuesta del servidor externo
   } catch (error) {
     console.error('Error al crear parte de entrada:', error);
     if (error.response) {
@@ -327,17 +330,32 @@ app.post('/api/crear-part-entrada', async (req, res) => {
 // Crear una entrada
 app.post('/api/crear-entrada', async (req, res) => {
   try {
-    const { LocatarioId, EntradaFechaCap, EntradaHoraCita, EntradaTipoDuracion, EntradaObserv } = req.body;
+    const { SDTEntrada } = req.body;
 
+    console.log("Datos recibidos en el backend:", SDTEntrada); // Verifica los datos recibidos
+
+    // Validar que SDTEntrada no esté vacío
+    if (!SDTEntrada) {
+      return res.status(400).json({ message: "SDTEntrada es requerido" });
+    }
+
+    // Validar que los campos obligatorios estén presentes
+    if (!SDTEntrada.LocatarioId || !SDTEntrada.EntradaFechaCap || !SDTEntrada.EntradaTipoDuracion || !SDTEntrada.EntradaObserv) {
+      return res.status(400).json({ message: "Faltan campos obligatorios en SDTEntrada" });
+    }
+
+    // Formatear la fecha y la hora
+    const fechaFormateada = new Date(SDTEntrada.EntradaFechaCap).toLocaleDateString('en-US'); // Convierte a MM/DD/YYYY
+    const horaFormateada = new Date().toLocaleTimeString('en-US', { hour12: false }); // Convierte a HH:mm:ss
+
+    // Llamar al endpoint CrearEntrada en el servidor externo
     const response = await axios.post(
       `${APIDatos}/CrearEntrada`,
       {
         SDTEntrada: {
-          LocatarioId,
-          EntradaFechaCap,
-          EntradaHoraCita,
-          EntradaTipoDuracion,
-          EntradaObserv,
+          ...SDTEntrada,
+          EntradaFechaCap: fechaFormateada,
+          EntradaHoraCita: horaFormateada,
         },
       },
       {
@@ -347,19 +365,66 @@ app.post('/api/crear-entrada', async (req, res) => {
       }
     );
 
-    res.status(200).json(response.data);
+    console.log("Respuesta del servidor externo:", response.data); // Verifica la respuesta del servidor externo
+
+    // Construir la respuesta completa
+    const respuestaCompleta = {
+      EntradaId: response.data.EntradaId,
+      LocatarioId: SDTEntrada.LocatarioId,
+      LocatarioNombre: SDTEntrada.LocatarioNombre,
+      EntradaFechaCap: fechaFormateada, // Usa la fecha formateada
+      EntradaHoraCita: horaFormateada, // Usa la hora formateada
+      EntradaTipoDuracion: SDTEntrada.EntradaTipoDuracion, // Usa el tipo de duración que enviaste
+      EntradaObserv: SDTEntrada.EntradaObserv, // Usa las observaciones que enviaste
+      Part: [], // Inicialmente vacío, se llenará con CrearPartEntrada
+    };
+
+    console.log("Respuesta completa enviada al frontend:", respuestaCompleta); // Verifica la respuesta completa
+
+    res.status(200).json(respuestaCompleta); // Envía la respuesta completa al frontend
   } catch (error) {
     console.error('Error al crear entrada:', error);
     if (error.response) {
+      console.error("Error del servidor externo:", error.response.data);
       res.status(error.response.status).json({ message: error.response.data.message });
     } else if (error.request) {
-      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+      console.error("No se recibió respuesta del servidor externo:", error.request);
+      res.status(500).json({ message: 'No se recibió respuesta del servidor externo' });
     } else {
+      console.error("Error al configurar la solicitud:", error.message);
       res.status(500).json({ message: 'Error al configurar la solicitud' });
     }
   }
 });
 
+
+app.get('/api/entrada/:id', async (req, res) => {
+  try {
+    const { id } = req.params; // Obtener el ID de la entrada desde los parámetros de la URL
+
+    // Hacer la solicitud a la API externa
+    const response = await axios.get(
+      `${APIDatos}/Entrada/${id}`
+    );
+
+    console.log("Respuesta del servidor externo:", response.data); // Verifica la respuesta del servidor externo
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error al obtener la entrada:', error);
+    if (error.response) {
+      // Si el servidor externo devuelve un error
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      // Si no se recibió respuesta del servidor externo
+      res.status(500).json({ message: 'No se recibió respuesta del servidor externo' });
+    } else {
+      // Si hubo un error al configurar la solicitud
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);

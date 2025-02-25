@@ -10,17 +10,18 @@ import { PiTruckTrailer } from "react-icons/pi";
 import { FaTruckLoading } from "react-icons/fa";
 import ErrorMessage from "../ErrorMessage";
 import EntriesTable from "./EntriesTable";
+import axios from "axios";
 
 const EntryCapture = () => {
   const navigate = useNavigate();
   const [isModalOpen, setModalOpen] = useState(false);
   const [pendingReports, setPendingReports] = useState([]); // Lista de reportes pendientes
+  const [entradaId, setEntradaId] = useState(null); // Estado para el ID de la entrada
+  const [partidas, setPartidas] = useState([]); // Estado para las partidas
   const [selectedPendingReport, setSelectedPendingReport] = useState(""); // Reporte pendiente seleccionado
 
   // Obtén los valores del store
   const modifiedEntries = useStore((state) => state.modifiedEntries);
-  const selectedTime = useStore((state) => state.selectedTime);
-  const setSelectedTime = useStore((state) => state.setSelectedTime);
   const saveReport = useStore((state) => state.saveReport);
   const removeModifiedEntryById = useStore((state) => state.removeModifiedEntryById);
   const getReportsByCurrentUser = useStore((state) => state.getReportsByCurrentUser);
@@ -35,6 +36,16 @@ const EntryCapture = () => {
 
   // Usa useMemo para evitar recalcular valores en cada renderizado
   const hasEntries = useMemo(() => modifiedEntries.length > 0, [modifiedEntries]);
+
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [tipoDuracion, setTipoDuracion] = useState(null);
+
+  const handleTimeSelection = (time, tipo) => {
+    if (!isReportCompleted) {
+      setSelectedTime(time);
+      setTipoDuracion(tipo);
+    }
+  };
 
   // Limpiar el estado automáticamente si el reporte está completado
   useEffect(() => {
@@ -57,24 +68,97 @@ const EntryCapture = () => {
     }
   }, [selectedPendingReport, loadPendingReport]);
 
-  const handleScheduleAppointment = () => {
+  // Función para obtener la entrada y sus partidas desde la BD
+  const fetchEntrada = async (id) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/entrada/${id}`);
+      console.log("Respuesta de la API:", response.data); // Verifica la respuesta
+      setPartidas(response.data.Part); // Extrae las partidas de la respuesta
+    } catch (error) {
+      console.error("Error al obtener la entrada:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (entradaId) {
+      fetchEntrada(entradaId);
+    }
+  }, [entradaId]);
+
+  const handleScheduleAppointment = async () => {
     if (isReportCompleted) {
       alert("Este reporte ya está completado. No se puede agendar una cita.");
       return;
     }
-    saveReport();
-    navigate("/agendar-cita", { state: { selectedFolio: currentFolio } });
+  
+    if (partidas.length === 0) {
+      alert("No hay productos agregados.");
+      return;
+    }
+  
+    try {
+      // Crear el objeto de la entrada principal
+      const entradaData = {
+        LocatarioId: "1", // Asegúrate de que este valor sea correcto
+        LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
+        EntradaFechaCap: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+        EntradaHoraCita: "", // Hora seleccionada por el usuario
+        EntradaTipoDuracion: tipoDuracion, // Tipo de duración seleccionado
+        EntradaObserv: "Ninguna", // Observaciones (opcional)
+        Part: partidas.map((partida) => ({
+          PartEntSKU: partida.sku, // SKU del producto
+          PartEntProdId: partida.id, // ID del producto (puede ser el mismo que el SKU)
+          PartEntProdDesc: partida.description, // Descripción del producto
+          PartEntCosto: partida.cost, // Costo del producto
+          PartEntPrecio: partida.price, // Precio del producto
+          PartEntCant: partida.quantity, // Cantidad ingresada
+          PartEntCheck: false, // Puedes ajustar esto según tu lógica
+          PartEntObserv: "Ninguna", // Observaciones (opcional)
+        })),
+      };
+  
+      // Envuelve los datos en un objeto SDTEntrada
+      const requestData = {
+        SDTEntrada: entradaData,
+      };
+  
+      console.log("Datos enviados al backend:", requestData); // Verifica los datos enviados
+  
+      // Llamar al endpoint CrearEntrada para generar el folio
+      const entradaResponse = await axios.post('http://localhost:5000/api/crear-entrada', requestData);
+  
+      console.log("Respuesta del backend:", entradaResponse.data); // Verifica la respuesta del backend
+  
+      const folio = entradaResponse.data.EntradaId; // Obtén el folio generado
+  
+      // Reiniciar el estado de entradaId
+      setEntradaId(null);
+  
+      // Actualizar las partidas después de crear la entrada
+      fetchEntrada(folio);
+  
+      // Navegar a la pantalla de agendar cita
+      navigate("/agendar-cita", { state: { selectedFolio: folio } });
+  
+    } catch (error) {
+      console.error("Error al agendar cita:", error);
+      if (error.response) {
+        console.error("Detalles del error:", error.response.data); // Imprime el cuerpo del error
+      }
+      alert("Hubo un error al agendar la cita.");
+    }
   };
 
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
   };
+  
 
   return (
     <div className="max-w-4xl mx-auto mt-5 bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Registrar Entradas</h2>
       <ToastContainer />
-
+  
       {/* Selector de reportes pendientes */}
       <div className="mb-6">
         <label htmlFor="pendingReports" className="block font-semibold text-gray-700 mb-2">
@@ -94,15 +178,20 @@ const EntryCapture = () => {
           ))}
         </select>
       </div>
-
-      <SearchHeader toggleModal={toggleModal} />
-
-      {!hasEntries ? (
+  
+      <SearchHeader
+        toggleModal={toggleModal}
+        entradaId={entradaId}
+        setEntradaId={setEntradaId}
+        fetchEntrada={fetchEntrada} 
+      />
+  
+      {partidas.length === 0 ? ( // Cambia el condicional a partidas.length
         <p className="text-center text-gray-500">No hay entradas registradas.</p>
       ) : (
         <>
-          <EntriesTable entries={modifiedEntries} removeModifiedEntryById={removeModifiedEntryById} />
-
+          <EntriesTable partidas={partidas} />
+  
           <div className="mt-4 py-4">
             <label className="block font-semibold text-gray-700 mb-2">
               Selecciona el tipo de vehículo y duración:
@@ -110,7 +199,7 @@ const EntryCapture = () => {
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => !isReportCompleted && setSelectedTime("30 min")}
+                onClick={() => handleTimeSelection("30 min", "A")}
                 disabled={isReportCompleted}
                 className={`p-4 rounded-lg ${
                   selectedTime === "30 min" && !isReportCompleted
@@ -123,7 +212,7 @@ const EntryCapture = () => {
               </button>
               <button
                 type="button"
-                onClick={() => !isReportCompleted && setSelectedTime("1 hora")}
+                onClick={() => handleTimeSelection("1 hora", "B")}
                 disabled={isReportCompleted}
                 className={`p-4 rounded-lg ${
                   selectedTime === "1 hora" && !isReportCompleted
@@ -136,7 +225,7 @@ const EntryCapture = () => {
               </button>
               <button
                 type="button"
-                onClick={() => !isReportCompleted && setSelectedTime("2 horas")}
+                onClick={() => handleTimeSelection("2 horas", "C")}
                 disabled={isReportCompleted}
                 className={`p-4 rounded-lg ${
                   selectedTime === "2 horas" && !isReportCompleted
@@ -149,7 +238,7 @@ const EntryCapture = () => {
               </button>
             </div>
           </div>
-
+  
           <div className="mt-6 text-center">
             <button
               onClick={handleScheduleAppointment}
@@ -163,7 +252,7 @@ const EntryCapture = () => {
             >
               <FaCalendarAlt className="mr-2" /> Terminar y Agendar Cita
             </button>
-
+  
             {!selectedTime && (
               <ErrorMessage>Debes seleccionar un tipo de vehículo y duración.</ErrorMessage>
             )}
@@ -173,7 +262,7 @@ const EntryCapture = () => {
           </div>
         </>
       )}
-
+  
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-200 rounded-xl shadow-lg p-8 w-full max-w-4xl relative overflow-y-auto max-h-screen">

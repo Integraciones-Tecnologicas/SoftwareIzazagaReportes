@@ -1,51 +1,49 @@
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
-
-const EntriesTable = ({ entries, removeModifiedEntryById }) => {
-    return (
-      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table className="min-w-full bg-white shadow-lg table-auto border-collapse">
-          <thead className="bg-gray-200 text-gray-600 text-sm uppercase tracking-wider">
-            <tr>
-              <th className="px-4 py-3 border-b">Descripción</th>
-              <th className="px-4 py-3 border-b">SKU</th>
-              <th className="px-4 py-3 border-b">Costo</th>
-              <th className="px-4 py-3 border-b">Precio</th>
-              <th className="px-4 py-3 border-b">Cantidad</th>
-              <th className="px-4 py-3 border-b">Línea</th>
-              <th className="px-4 py-3 border-b">Subfamilia</th>
-              <th className="px-4 py-3 border-b">Piratería</th>
-              <th className="px-4 py-3 border-b">Imagen</th>
-              <th className="px-4 py-3 border-b">Observaciones</th>
-              <th className="px-4 py-3 border-b">Acciones</th>
+const EntriesTable = ({ partidas }) => {
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="px-4 py-2 border border-gray-300">SKU</th>
+            <th className="px-4 py-2 border border-gray-300">Descripción</th>
+            <th className="px-4 py-2 border border-gray-300">Costo</th>
+            <th className="px-4 py-2 border border-gray-300">Precio</th>
+            <th className="px-4 py-2 border border-gray-300">Cantidad</th>
+            <th className="px-4 py-2 border border-gray-300">Verificado</th>
+            <th className="px-4 py-2 border border-gray-300">Observaciones</th>
+            <th className="px-4 py-2 border border-gray-300">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {partidas.map((partida) => (
+            <tr key={partida.PartEntId} className="hover:bg-gray-50">
+              <td className="px-4 py-2 border border-gray-300">{partida.PartEntSKU}</td>
+              <td className="px-4 py-2 border border-gray-300">{partida.PartEntProdDesc}</td>
+              <td className="px-4 py-2 border border-gray-300">{partida.PartEntCosto}</td>
+              <td className="px-4 py-2 border border-gray-300">{partida.PartEntPrecio}</td>
+              <td className="px-4 py-2 border border-gray-300">{partida.PartEntCant}</td>
+              <td className="px-4 py-2 border border-gray-300">
+                {partida.PartEntCheck ? "Sí" : "No"}
+              </td>
+              <td className="px-4 py-2 border border-gray-300">{partida.PartEntObserv}</td>
+              <td className="px-4 py-2 border border-gray-300 text-center">
+                <button
+                  onClick={() => console.log("Eliminar partida:", partida.PartEntId)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {entries.map((entry, index) => (
-              <tr key={entry.id} className="odd:bg-white even:bg-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-3 border-b">{entry.description}</td>
-                <td className="px-4 py-3 border-b text-center">{entry.sku || "N/A"}</td>
-                <td className="px-4 py-3 border-b text-center">{entry.cost}</td>
-                <td className="px-4 py-3 border-b text-center">{entry.price}</td>
-                <td className="px-4 py-3 border-b text-center">{entry.quantity || "N/A"}</td>
-                <td className="px-4 py-3 border-b">{entry.line}</td>
-                <td className="px-4 py-3 border-b">{entry.subfamily}</td>
-                <td className="px-4 py-3 border-b">{entry.piracy ? "Sí" : "No"}</td>
-                <td className="px-4 py-3 border-b">{entry.images}</td>
-                <td className="px-4 py-3 border-b">{entry.observations || "N/A"}</td>
-                <td className="px-4 py-3 border-b text-center">
-                  <button
-                    onClick={() => removeModifiedEntryById(entry.id)}
-                    className="text-red-600 hover:text-red-800 font-semibold"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
-export default EntriesTable
+export default EntriesTable;
