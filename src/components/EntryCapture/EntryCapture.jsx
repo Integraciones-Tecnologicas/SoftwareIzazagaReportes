@@ -85,6 +85,8 @@ const EntryCapture = () => {
     }
   }, [entradaId]);
 
+  const [isScheduling, setIsScheduling] = useState(false);
+
   const handleScheduleAppointment = async () => {
     if (isReportCompleted) {
       alert("Este reporte ya está completado. No se puede agendar una cita.");
@@ -96,50 +98,14 @@ const EntryCapture = () => {
       return;
     }
   
+    if (!entradaId) {
+      alert("No hay una entrada activa. Agrega al menos un producto antes de agendar.");
+      return;
+    }
+  
     try {
-      // Crear el objeto de la entrada principal
-      const entradaData = {
-        LocatarioId: "1", // Asegúrate de que este valor sea correcto
-        LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
-        EntradaFechaCap: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
-        EntradaHoraCita: "", // Hora seleccionada por el usuario
-        EntradaTipoDuracion: tipoDuracion, // Tipo de duración seleccionado
-        EntradaObserv: "Ninguna", // Observaciones (opcional)
-        Part: partidas.map((partida) => ({
-          PartEntSKU: partida.sku, // SKU del producto
-          PartEntProdId: partida.id, // ID del producto (puede ser el mismo que el SKU)
-          PartEntProdDesc: partida.description, // Descripción del producto
-          PartEntCosto: partida.cost, // Costo del producto
-          PartEntPrecio: partida.price, // Precio del producto
-          PartEntCant: partida.quantity, // Cantidad ingresada
-          PartEntCheck: false, // Puedes ajustar esto según tu lógica
-          PartEntObserv: "Ninguna", // Observaciones (opcional)
-        })),
-      };
-  
-      // Envuelve los datos en un objeto SDTEntrada
-      const requestData = {
-        SDTEntrada: entradaData,
-      };
-  
-      console.log("Datos enviados al backend:", requestData); // Verifica los datos enviados
-  
-      // Llamar al endpoint CrearEntrada para generar el folio
-      const entradaResponse = await axios.post('http://localhost:5000/api/crear-entrada', requestData);
-  
-      console.log("Respuesta del backend:", entradaResponse.data); // Verifica la respuesta del backend
-  
-      const folio = entradaResponse.data.EntradaId; // Obtén el folio generado
-  
-      // Reiniciar el estado de entradaId
-      setEntradaId(null);
-  
-      // Actualizar las partidas después de crear la entrada
-      fetchEntrada(folio);
-  
-      // Navegar a la pantalla de agendar cita
-      navigate("/agendar-cita", { state: { selectedFolio: folio } });
-  
+      // Navegar a la pantalla de agendar cita con el entradaId existente
+      navigate("/agendar-cita", { state: { selectedFolio: entradaId } });
     } catch (error) {
       console.error("Error al agendar cita:", error);
       if (error.response) {
@@ -252,10 +218,10 @@ const EntryCapture = () => {
           <div className="mt-6 text-center">
             <button
               onClick={handleScheduleAppointment}
-              disabled={!selectedTime || isReportCompleted} // Deshabilita si no hay tiempo seleccionado o si el reporte está completado
+              disabled={!selectedTime || isReportCompleted || !entradaId} // Deshabilitar si no hay entradaId
               className={`flex items-center justify-center font-semibold uppercase py-2 px-4 rounded-lg shadow-lg mx-auto transition-all
                 ${
-                  selectedTime && !isReportCompleted
+                  selectedTime && !isReportCompleted && entradaId
                     ? "bg-indigo-600 text-white hover:bg-indigo-700"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
