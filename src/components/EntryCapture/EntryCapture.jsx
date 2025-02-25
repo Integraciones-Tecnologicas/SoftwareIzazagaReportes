@@ -69,7 +69,7 @@ const EntryCapture = () => {
   const fetchEntrada = async (id) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/entrada/${id}`);
-      console.log("Respuesta de la API:", response.data); // Verifica la respuesta
+      console.log("Respuesta de la API de Pendientes:", response.data); // Verifica la respuesta
       setPartidas(response.data.Part); // Extrae las partidas de la respuesta
     } catch (error) {
       console.error("Error al obtener la entrada:", error);
