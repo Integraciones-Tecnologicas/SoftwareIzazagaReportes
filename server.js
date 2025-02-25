@@ -456,6 +456,31 @@ app.get('/api/entrada/:id', async (req, res) => {
   }
 });
 
+// Obtener entradas pendientes
+app.get('/api/entradas-pendientes', async (req, res) => {
+  try {
+    // Hacer la solicitud a la API externa para obtener las entradas pendientes
+    const response = await axios.get(
+      `${APIDatos}/EntradasPendientes`
+    );
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      // Si el servidor externo devuelve un error
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      // Si no se recibió respuesta del servidor externo
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      // Si hubo un error al configurar la solicitud
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
 });

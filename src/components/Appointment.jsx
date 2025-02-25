@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useLocation } from "react-router-dom";
 import ErrorMessage from "./ErrorMessage";
 import useStore from "../store/store";
+import EntradasPendientes from "./EntradasPendientes";
 
 const Appointment = () => {
   const location = useLocation();
@@ -146,7 +147,8 @@ const Appointment = () => {
       </h2>
 
       {/* Input para seleccionar reportes pendientes */}
-      <div className="mb-6">
+      <EntradasPendientes />
+      {/* <div className="mb-6">
         <label htmlFor="pendingReports" className="block text-sm font-semibold uppercase">
           Reportes Pendientes:
         </label>
@@ -163,7 +165,7 @@ const Appointment = () => {
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
 
       <div className="mt-6">
         <h3 className="text-xl font-semibold">Historial de Citas Reservadas</h3>

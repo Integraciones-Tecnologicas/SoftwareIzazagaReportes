@@ -11,6 +11,7 @@ import { FaTruckLoading } from "react-icons/fa";
 import ErrorMessage from "../ErrorMessage";
 import EntriesTable from "./EntriesTable";
 import axios from "axios";
+import EntradasPendientes from "../EntradasPendientes";
 
 const EntryCapture = () => {
   const navigate = useNavigate();
@@ -132,7 +133,8 @@ const EntryCapture = () => {
       <ToastContainer />
   
       {/* Selector de reportes pendientes */}
-      <div className="mb-6">
+      <EntradasPendientes />
+      {/* <div className="mb-6">
         <label htmlFor="pendingReports" className="block font-semibold text-gray-700 mb-2">
           Reportes Pendientes:
         </label>
@@ -149,7 +151,7 @@ const EntryCapture = () => {
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
   
       <SearchHeader
         toggleModal={toggleModal}
