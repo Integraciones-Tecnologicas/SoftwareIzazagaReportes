@@ -126,8 +126,8 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
               LocatarioId: "1", // Asegúrate de que este valor sea correcto
               LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
               EntradaFechaCap: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
-              EntradaHoraCita: "16:00:00", // Hora seleccionada por el usuario
-              EntradaTipoDuracion: "A", // Tipo de duración (puedes ajustar esto)
+              EntradaHoraCita: new Date().getHours()+":"+new Date().getMinutes()+":"+new Date().getSeconds(), // Hora seleccionada por el usuario
+              EntradaTipoDuracion: "", // Tipo de duración (puedes ajustar esto)
               EntradaObserv: "Ninguna", // Observaciones (opcional)
             },
           });

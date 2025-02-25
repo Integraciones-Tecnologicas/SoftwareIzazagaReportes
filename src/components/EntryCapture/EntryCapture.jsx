@@ -11,15 +11,14 @@ import { FaTruckLoading } from "react-icons/fa";
 import ErrorMessage from "../ErrorMessage";
 import EntriesTable from "./EntriesTable";
 import axios from "axios";
-import EntradasPendientes from "../EntradasPendientes";
 
 const EntryCapture = () => {
   const navigate = useNavigate();
   const [isModalOpen, setModalOpen] = useState(false);
-  const [pendingReports, setPendingReports] = useState([]); // Lista de reportes pendientes
+  const [entradasPendientes, setEntradasPendientes] = useState([]); // Lista de entradas pendientes
   const [entradaId, setEntradaId] = useState(null); // Estado para el ID de la entrada
   const [partidas, setPartidas] = useState([]); // Estado para las partidas
-  const [selectedPendingReport, setSelectedPendingReport] = useState(""); // Reporte pendiente seleccionado
+  const [selectedEntradaId, setSelectedEntradaId] = useState(""); // Entrada pendiente seleccionada
 
   // Obtén los valores del store
   const modifiedEntries = useStore((state) => state.modifiedEntries);
@@ -52,24 +51,21 @@ const EntryCapture = () => {
   useEffect(() => {
     if (isReportCompleted) {
       resetReportState(); // Reiniciar el estado del reporte
-      setSelectedPendingReport(""); // Limpiar el reporte pendiente seleccionado
+      setSelectedEntradaId(""); // Limpiar la entrada pendiente seleccionada
     }
   }, [isReportCompleted, resetReportState]);
 
-  // Obtener los reportes pendientes al cargar el componente y cuando cambien los reportes en el store
-  useEffect(() => {
-    const userReports = getReportsByCurrentUser();
-    setPendingReports(userReports.filter((report) => report.status === "pendiente")); // Filtrar reportes pendientes
-  }, [getReportsByCurrentUser, savedReports]); // Escuchar cambios en savedReports
-
-  // Cargar un reporte pendiente seleccionado
-  useEffect(() => {
-    if (selectedPendingReport) {
-      loadPendingReport(selectedPendingReport); // Cargar el reporte pendiente seleccionado
+  // Función para obtener las entradas pendientes
+  const fetchEntradasPendientes = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/entradas-pendientes");
+      setEntradasPendientes(response.data.SDTEntradas); // Almacenar las entradas pendientes en el estado
+    } catch (error) {
+      console.error("Error al obtener las entradas pendientes:", error);
     }
-  }, [selectedPendingReport, loadPendingReport]);
+  };
 
-  // Función para obtener la entrada y sus partidas desde la BD
+  // Función para obtener una entrada y sus partidas
   const fetchEntrada = async (id) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/entrada/${id}`);
@@ -80,11 +76,18 @@ const EntryCapture = () => {
     }
   };
 
+  // Obtener las entradas pendientes al cargar el componente
   useEffect(() => {
-    if (entradaId) {
-      fetchEntrada(entradaId);
+    fetchEntradasPendientes();
+  }, []);
+
+  // Cargar la entrada seleccionada y sus partidas
+  useEffect(() => {
+    if (selectedEntradaId) {
+      setEntradaId(selectedEntradaId); // Actualizar el estado de entradaId
+      fetchEntrada(selectedEntradaId); // Cargar las partidas de la entrada seleccionada
     }
-  }, [entradaId]);
+  }, [selectedEntradaId]);
 
   const [isScheduling, setIsScheduling] = useState(false);
 
@@ -93,17 +96,17 @@ const EntryCapture = () => {
       alert("Este reporte ya está completado. No se puede agendar una cita.");
       return;
     }
-  
+
     if (partidas.length === 0) {
       alert("No hay productos agregados.");
       return;
     }
-  
+
     if (!entradaId) {
       alert("No hay una entrada activa. Agrega al menos un producto antes de agendar.");
       return;
     }
-  
+
     try {
       // Navegar a la pantalla de agendar cita con el entradaId existente
       navigate("/agendar-cita", { state: { selectedFolio: entradaId } });
@@ -125,42 +128,40 @@ const EntryCapture = () => {
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
   };
-  
 
   return (
     <div className="max-w-4xl mx-auto mt-5 bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Registrar Entradas</h2>
       <ToastContainer />
-  
-      {/* Selector de reportes pendientes */}
-      <EntradasPendientes />
-      {/* <div className="mb-6">
-        <label htmlFor="pendingReports" className="block font-semibold text-gray-700 mb-2">
-          Reportes Pendientes:
+
+      {/* Selector de entradas pendientes */}
+      <div className="mb-6">
+        <label htmlFor="entradasPendientes" className="block font-semibold text-gray-700 mb-2">
+          Entradas Pendientes:
         </label>
         <select
-          id="pendingReports"
-          value={selectedPendingReport}
-          onChange={(e) => setSelectedPendingReport(e.target.value)}
+          id="entradasPendientes"
+          value={selectedEntradaId}
+          onChange={(e) => setSelectedEntradaId(e.target.value)}
           className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
         >
-          <option value="">Selecciona un reporte pendiente</option>
-          {pendingReports.map((report) => (
-            <option key={report.id} value={report.id}>
-              {report.id} - {report.selectedTime}
+          <option value="">Selecciona una entrada pendiente</option>
+          {entradasPendientes.map((entrada) => (
+            <option key={entrada.EntradaId} value={entrada.EntradaId}>
+              {entrada.EntradaId} - {entrada.LocatarioNombre}
             </option>
           ))}
         </select>
-      </div> */}
-  
+      </div>
+
       <SearchHeader
         toggleModal={toggleModal}
         entradaId={entradaId}
         setEntradaId={setEntradaId}
-        fetchEntrada={fetchEntrada} 
+        fetchEntrada={fetchEntrada} // Pasar la función fetchEntrada
       />
-  
-      {partidas.length === 0 ? ( // Cambia el condicional a partidas.length
+
+      {!partidas || partidas.length === 0 ? (
         <p className="text-center text-gray-500">No hay entradas registradas.</p>
       ) : (
         <>
@@ -169,7 +170,7 @@ const EntryCapture = () => {
             entradaId={entradaId} // Pasar el EntradaId
             onDelete={handleDeletePartida}
           />
-  
+
           <div className="mt-4 py-4">
             <label className="block font-semibold text-gray-700 mb-2">
               Selecciona el tipo de vehículo y duración:
@@ -216,11 +217,11 @@ const EntryCapture = () => {
               </button>
             </div>
           </div>
-  
+
           <div className="mt-6 text-center">
             <button
               onClick={handleScheduleAppointment}
-              disabled={!selectedTime || isReportCompleted || !entradaId} // Deshabilitar si no hay entradaId
+              disabled={!selectedTime || isReportCompleted || !entradaId}
               className={`flex items-center justify-center font-semibold uppercase py-2 px-4 rounded-lg shadow-lg mx-auto transition-all
                 ${
                   selectedTime && !isReportCompleted && entradaId
@@ -230,7 +231,7 @@ const EntryCapture = () => {
             >
               <FaCalendarAlt className="mr-2" /> Terminar y Agendar Cita
             </button>
-  
+
             {!selectedTime && (
               <ErrorMessage>Debes seleccionar un tipo de vehículo y duración.</ErrorMessage>
             )}
@@ -240,7 +241,7 @@ const EntryCapture = () => {
           </div>
         </>
       )}
-  
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-200 rounded-xl shadow-lg p-8 w-full max-w-4xl relative overflow-y-auto max-h-screen">

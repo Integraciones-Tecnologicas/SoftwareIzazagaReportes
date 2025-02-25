@@ -340,7 +340,7 @@ app.post('/api/crear-entrada', async (req, res) => {
     }
 
     // Validar que los campos obligatorios estén presentes
-    if (!SDTEntrada.LocatarioId || !SDTEntrada.EntradaFechaCap || !SDTEntrada.EntradaTipoDuracion || !SDTEntrada.EntradaObserv) {
+    if (!SDTEntrada.LocatarioId || !SDTEntrada.EntradaFechaCap || !SDTEntrada.EntradaObserv) {
       return res.status(400).json({ message: "Faltan campos obligatorios en SDTEntrada" });
     }
 
