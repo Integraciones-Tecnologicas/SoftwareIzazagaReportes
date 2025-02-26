@@ -8,7 +8,7 @@ const Prueba = () => {
       const fecthData = async () => {
         
         try {
-            const response = await axios.get('http://localhost:5000/api/data')
+            const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/data`)
             setData(response.data)
         } catch (error) {
             console.error("Error al obtener datos:", error);

@@ -14,7 +14,7 @@ const ReviewEntry = () => {
     useEffect(() => {
         const fetchEntradasPendientes = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/entradas-pendientes');
+                const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entradas-pendientes`);
                 setEntradasPendientes(response.data.SDTEntradas);
             } catch (error) {
                 console.error('Error fetching entradas pendientes:', error);
@@ -27,7 +27,7 @@ const ReviewEntry = () => {
     // Llamada a la API para obtener las partidas de una entrada específica
     const fetchPartidas = async (entradaId) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/entrada/${entradaId}`);
+            const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entrada/${entradaId}`);
             setPartidas((prev) => ({ ...prev, [entradaId]: response.data.Part }));
         } catch (error) {
             console.error('Error fetching partidas:', error);

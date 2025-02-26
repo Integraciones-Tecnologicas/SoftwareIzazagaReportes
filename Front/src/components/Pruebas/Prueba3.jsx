@@ -17,7 +17,7 @@ const Prueba3 = () => {
         while (attempts < maxAttempts) {
           try {
             const response = await axios.get(
-              `http://localhost:5000/api/locatario/${id}`
+              `${import.meta.env.VITE_API_SERVER}/api/locatario/${id}`
             );
             locatariosData.push(response.data); // Agregar el locatario al array
             id++; // Incrementar el ID para la siguiente solicitud

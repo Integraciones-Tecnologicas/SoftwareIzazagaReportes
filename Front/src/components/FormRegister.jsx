@@ -15,7 +15,7 @@ const FormRegister = () => {
     const buscarLocatarios = async (nombre) => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/buscar-locatario?nombre=${nombre}`
+                `${import.meta.env.VITE_API_SERVER}/api/buscar-locatario?nombre=${nombre}`
             );
             // Actualizar el estado con los resultados de la búsqueda
             setSearchResults(response.data.SDTBuscaLocatario || []);
@@ -39,7 +39,7 @@ const FormRegister = () => {
         try {
             // Obtener los detalles completos del locatario seleccionado
             const response = await axios.get(
-                `http://localhost:5000/api/locatario/${locatario.LocatarioId}`
+                `${import.meta.env.VITE_API_SERVER}/api/locatario/${locatario.LocatarioId}`
             );
             const locatarioData = response.data;
 
@@ -67,7 +67,7 @@ const FormRegister = () => {
     const registerTenant = async (data) => {
         try {
             // Enviar los datos a la API para crear el locatario
-            const response = await axios.post('http://localhost:5000/api/locatario', {
+            const response = await axios.post('${import.meta.env.VITE_API_SERVER}/api/locatario', {
                 LocatarioNombre: data.nameTenant,
                 LocatarioDireccion: data.address,
                 LocatarioEmail: data.email,

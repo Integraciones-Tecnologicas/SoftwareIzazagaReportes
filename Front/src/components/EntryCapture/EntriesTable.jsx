@@ -14,7 +14,7 @@ const EntriesTable = ({ partidas, entradaId, onDelete }) => {
       }
 
       // Hacer la solicitud GET al endpoint para eliminar la entrada
-      const response = await axios.get(`http://localhost:5000/api/eliminar-entrada`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/eliminar-entrada`, {
         params: { Entradaid: entradaId, PartEntId }, // Pasar los parámetros en la URL
       });
 

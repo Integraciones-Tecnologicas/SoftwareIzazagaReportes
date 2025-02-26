@@ -8,7 +8,7 @@ const EntradasPendientes = () => {
   // Función para obtener las entradas pendientes
   const fetchEntradasPendientes = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/entradas-pendientes");
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entradas-pendientes`);
       setEntradasPendientes(response.data.SDTEntradas); // Almacenar las entradas pendientes en el estado
     } catch (error) {
       console.error("Error al obtener las entradas pendientes:", error);

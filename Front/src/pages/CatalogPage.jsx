@@ -16,7 +16,7 @@ const CatalogPage = () => {
   // Función para obtener los productos
   const fetchProductos = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/productos", {
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/productos`, {
         params: { LocatarioId: 0 },
       });
       
@@ -35,14 +35,14 @@ const CatalogPage = () => {
   
   const handleEliminarProducto = async (sku) => {
     try {
-      const Locatarioid = 1; // Valor fijo por ahora
+      const Locatarioid = 2; // Valor fijo por ahora
   
       // Confirmación antes de eliminar
       const confirmacion = window.confirm(`¿Seguro que deseas eliminar el producto con SKU: ${sku}?`);
       if (!confirmacion) return;
   
       const response = await axios.get(
-        `http://localhost:5000/api/eliminar-producto?Locatarioid=${Locatarioid}&Prodssku=${sku}`
+        `${import.meta.env.VITE_API_SERVER}/api/eliminar-producto?Locatarioid=${Locatarioid}&Prodssku=${sku}`
       );
   
       toast.success("Producto eliminado correctamente");

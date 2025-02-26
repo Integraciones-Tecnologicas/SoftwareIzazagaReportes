@@ -41,8 +41,8 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
       console.log("Datos enviados a la API:", productoData);
 
       const endpoint = initialData?.ProdId
-        ? "http://localhost:5000/api/actualizar-producto"
-        : "http://localhost:5000/api/crear-producto";
+        ? `${import.meta.env.VITE_API_SERVER}/api/actualizar-producto`
+        : `${import.meta.env.VITE_API_SERVER}/api/crear-producto`;
 
       const response = await axios.post(endpoint, productoData, {
         headers: { "Content-Type": "application/json" },

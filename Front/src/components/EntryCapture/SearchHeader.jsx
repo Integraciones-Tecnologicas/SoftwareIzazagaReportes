@@ -21,8 +21,8 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
   // Función para buscar productos por SKU
   const buscarProducto = async (sku) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/buscar-producto`, {
-        params: { Locatarioid: 1, Prodssku: sku },
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-producto`, {
+        params: { Locatarioid: 2, Prodssku: sku },
       });
 
       // Verificar si la respuesta contiene productos
@@ -121,7 +121,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
   
         // Si no hay un EntradaId, crea una nueva entrada
         if (!entradaIdToUse) {
-          const entradaResponse = await axios.post('http://localhost:5000/api/crear-entrada', {
+          const entradaResponse = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/crear-entrada`, {
             SDTEntrada: {
               LocatarioId: "2", // Asegúrate de que este valor sea correcto
               LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
@@ -137,7 +137,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
         }
   
         // Agrega la parte de entrada
-        const partResponse = await axios.post('http://localhost:5000/api/crear-part-entrada', {
+        const partResponse = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/crear-part-entrada`, {
           EntradaId: entradaIdToUse,
           PartEntProdId: selectedEntry?.ProdId, // Usar el ID del producto (ProdId) en lugar del SKU
           PartEntCant: formData.quantity, // Cantidad ingresada

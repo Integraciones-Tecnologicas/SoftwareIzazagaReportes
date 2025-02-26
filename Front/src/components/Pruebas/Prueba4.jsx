@@ -9,7 +9,7 @@ const FormRegister = () => {
 
     const buscarLocatario = async (nombre) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/buscar-locatario?nombre=${nombre}`);
+            const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-locatario?nombre=${nombre}`);
             console.log("Locatario encontrado:", response.data);
             // Aquí puedes actualizar el estado o mostrar los resultados en la interfaz
         } catch (error) {

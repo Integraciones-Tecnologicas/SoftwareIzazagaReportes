@@ -58,7 +58,7 @@ const EntryCapture = () => {
   // Función para obtener las entradas pendientes
   const fetchEntradasPendientes = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/entradas-pendientes");
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entradas-pendientes`);
       setEntradasPendientes(response.data.SDTEntradas); // Almacenar las entradas pendientes en el estado
     } catch (error) {
       console.error("Error al obtener las entradas pendientes:", error);
@@ -68,7 +68,7 @@ const EntryCapture = () => {
   // Función para obtener una entrada y sus partidas
   const fetchEntrada = async (id) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/entrada/${id}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entrada/${id}`);
       console.log("Respuesta de la API de Pendientes:", response.data); // Verifica la respuesta
       setPartidas(response.data.Part); // Extrae las partidas de la respuesta
     } catch (error) {

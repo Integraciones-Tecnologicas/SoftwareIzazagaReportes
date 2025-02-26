@@ -15,7 +15,7 @@ const Prueba2 = () => {
     setLoading(true);
     try {
       // Hacer la solicitud POST con axios
-      const response = await axios.post('http://localhost:5000/api/login', {
+      const response = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/login`, {
         Cuenta: data.cuenta,
         Password: data.password,
       });
