@@ -24,7 +24,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
     try {
       const productoData = {
         ProdId: initialData?.ProdId || null,  // Solo se envía si es actualización
-        LocatarioId: "1",
+        LocatarioId: "2",
         ProdsSKU: data.sku,
         ProdsDescrip: data.description,
         ProdsLinea: data.line,

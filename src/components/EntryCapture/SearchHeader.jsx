@@ -123,7 +123,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
         if (!entradaIdToUse) {
           const entradaResponse = await axios.post('http://localhost:5000/api/crear-entrada', {
             SDTEntrada: {
-              LocatarioId: "1", // Asegúrate de que este valor sea correcto
+              LocatarioId: "2", // Asegúrate de que este valor sea correcto
               LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
               EntradaFechaCap: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
               EntradaHoraCita: new Date().getHours()+":"+new Date().getMinutes()+":"+new Date().getSeconds(), // Hora seleccionada por el usuario
