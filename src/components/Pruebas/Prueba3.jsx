@@ -9,7 +9,7 @@ const Prueba3 = () => {
   useEffect(() => {
     const fetchLocatarios = async () => {
       const locatariosData = [];
-      let id = 1; // Empezar desde el ID 1
+      let id = 3; // Empezar desde el ID 1
       const maxAttempts = 7; // Límite máximo de IDs a verificar
       let attempts = 0;
       

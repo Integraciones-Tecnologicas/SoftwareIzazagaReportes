@@ -62,7 +62,7 @@ const EntriesTable = ({ partidas, entradaId, onDelete }) => {
               <td className="px-4 py-2 border border-gray-300 text-center">
                 <button
                   onClick={() => handleDelete(partida.PartEntId)} // Solo se pasa PartEntId
-                  className="text-red-600 hover:text-red-800"
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
                 >
                   <FontAwesomeIcon icon={faTrash} />
                 </button>

@@ -1,4 +1,4 @@
-import axios from 'axios'; // Importar axios para hacer solicitudes HTTP
+import axios from 'axios';
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import { CiSearch } from "react-icons/ci";
@@ -8,16 +8,15 @@ import Prueba3 from "./Pruebas/Prueba3";
 
 const FormRegister = () => {
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm();
-    const nameTenant = watch("nameTenant"); // Escuchar cambios en el input de nombre
-    const [searchResults, setSearchResults] = useState([]); // Estado para almacenar los resultados de la búsqueda
+    const nameTenant = watch("nameTenant");
+    const [searchResults, setSearchResults] = useState([]);
+    const [locatarioId, setLocatarioId] = useState(null); // Estado para almacenar el ID del locatario
 
-    // Función para buscar locatarios en la base de datos
     const buscarLocatarios = async (nombre) => {
         try {
             const response = await axios.get(
                 `${import.meta.env.VITE_API_SERVER}/api/buscar-locatario?nombre=${nombre}`
             );
-            // Actualizar el estado con los resultados de la búsqueda
             setSearchResults(response.data.SDTBuscaLocatario || []);
         } catch (error) {
             console.error("Error al buscar locatarios:", error);
@@ -25,25 +24,22 @@ const FormRegister = () => {
         }
     };
 
-    // Efecto para buscar locatarios cuando cambia el valor de nameTenant
     useEffect(() => {
-        if (nameTenant && nameTenant.length >= 3) { // Buscar solo si hay al menos 3 caracteres
+        if (nameTenant && nameTenant.length >= 3) {
             buscarLocatarios(nameTenant);
         } else {
-            setSearchResults([]); // Limpiar resultados si no hay suficiente texto
+            setSearchResults([]);
         }
     }, [nameTenant]);
 
-    // Función para manejar la selección de un locatario
     const handleSelectLocatario = async (locatario) => {
         try {
-            // Obtener los detalles completos del locatario seleccionado
             const response = await axios.get(
                 `${import.meta.env.VITE_API_SERVER}/api/locatario/${locatario.LocatarioId}`
             );
             const locatarioData = response.data;
 
-            // Llenar los campos del formulario con los datos del locatario
+            // Llenar los campos del formulario
             setValue("nameTenant", locatarioData.LocatarioNombre);
             setValue("email", locatarioData.LocatarioEmail);
             setValue("address", locatarioData.LocatarioDireccion);
@@ -55,7 +51,9 @@ const FormRegister = () => {
             setValue("observ", locatarioData.LocatarioObservacion || "");
             setValue("local", locatarioData.LocatarioActivo || "");
 
-            // Limpiar los resultados de la búsqueda
+            // Guardar el ID del locatario
+            setLocatarioId(locatarioData.LocatarioId);
+
             setSearchResults([]);
         } catch (error) {
             console.error("Error al obtener detalles del locatario:", error);
@@ -63,32 +61,53 @@ const FormRegister = () => {
         }
     };
 
-    // Función para registrar el locatario
     const registerTenant = async (data) => {
         try {
-            // Enviar los datos a la API para crear el locatario
-            const response = await axios.post('${import.meta.env.VITE_API_SERVER}/api/locatario', {
-                LocatarioNombre: data.nameTenant,
-                LocatarioDireccion: data.address,
-                LocatarioEmail: data.email,
-                UsuId: "0", // Puedes cambiar esto según tu lógica
-                LocatarioTelefono: data.telTenant,
-                LocatarioTel2: data.telTenant2 || "",
-                LocatarioRFC: data.rfc || "",
-                LocatarioNomContacto: data.contactName,
-                LocatarioTelContacto: data.telContact || "",
-                LocatarioActivo: "", // Puedes ajustar esto según tu lógica
-                LocatarioObservacion: data.observ || ""
-            });
-
-            // Si la solicitud es exitosa, mostrar un mensaje de éxito
-            toast.success("Locatario registrado correctamente en la base de datos");
-
-            // Limpiar el formulario
+            if (locatarioId) {
+                // Si hay un LocatarioId, actualizar el locatario
+                const response = await axios.post(
+                    `${import.meta.env.VITE_API_SERVER}/api/actualizar-locatario`,
+                    {
+                        LocatarioId: locatarioId,
+                        LocatarioNombre: data.nameTenant,
+                        LocatarioDireccion: data.address,
+                        LocatarioEmail: data.email,
+                        UsuId: "1",
+                        LocatarioTelefono: data.telTenant,
+                        LocatarioTel2: data.telTenant2 || "",
+                        LocatarioRFC: data.rfc || "",
+                        LocatarioNomContacto: data.contactName,
+                        LocatarioTelContacto: data.telContact || "",
+                        LocatarioActivo: "S",
+                        LocatarioObservacion: data.observ || ""
+                    }
+                );
+                toast.success("Locatario actualizado correctamente");
+            } else {
+                // Si no hay un LocatarioId, registrar un nuevo locatario
+                const response = await axios.post(
+                    `${import.meta.env.VITE_API_SERVER}/api/locatario`,
+                    {
+                        LocatarioNombre: data.nameTenant,
+                        LocatarioDireccion: data.address,
+                        LocatarioEmail: data.email,
+                        UsuId: "1",
+                        LocatarioTelefono: data.telTenant,
+                        LocatarioTel2: data.telTenant2 || "",
+                        LocatarioRFC: data.rfc || "",
+                        LocatarioNomContacto: data.contactName,
+                        LocatarioTelContacto: data.telContact || "",
+                        LocatarioActivo: "S",
+                        LocatarioObservacion: data.observ || ""
+                    }
+                );
+                toast.success("Locatario registrado correctamente");
+            }
             reset();
+            setLocatarioId(null); // Limpiar el ID después de guardar
         } catch (error) {
-            console.error("Error al registrar el locatario:", error);
-            toast.error("Hubo un error al registrar el locatario. Inténtalo de nuevo.");
+            console.error("Error al registrar/actualizar el locatario:", error);
+            toast.error("Hubo un error al registrar/actualizar el locatario.");
         }
     };
 
@@ -105,9 +124,11 @@ const FormRegister = () => {
             telContact: "",
             observ: "",
             local: "",
-        }); // Limpiar todos los campos
-        setSearchResults([]); // Limpiar los resultados de la búsqueda
+        });
+        setSearchResults([]);
+        setLocatarioId(null); // Limpiar el ID al limpiar el formulario
     };
+
 
     return (
         <>
@@ -159,8 +180,7 @@ const FormRegister = () => {
                                 ❌ Limpiar
                             </button>
                         </div>
-
-                        {/* Resto del formulario... */}
+                        
                         <div className="md:col-span-6">
                             <label htmlFor="email" className="font-bold text-gray-700">
                                 Usuario
@@ -276,14 +296,9 @@ const FormRegister = () => {
                                     className="w-full p-3 border border-gray-500 rounded-md"  
                                     type="text" 
                                     placeholder="Nombre Contacto"
-                                    {...register('contactName', {
-                                        required: 'El Nombre de Contacto del locatario es Obligatorio'
-                                    })}
+                                    {...register('contactName')}
                                 />
-
-                                {errors.contactName && (
-                                    <ErrorMessage>{errors.contactName?.message}</ErrorMessage>
-                                )}  
+                                
                             </div>
 
                             <div className="md:col-span-6">
@@ -295,14 +310,9 @@ const FormRegister = () => {
                                     className="w-full p-3 border border-gray-500 rounded-md"  
                                     type="text" 
                                     placeholder="Teléfono del Contacto" 
-                                    {...register('telContact', {
-                                        required: 'El teléfono de Contacto es Obligatorio'
-                                    })}
+                                    {...register('telContact')}
                                 />
-
-                                {errors.telContact && (
-                                    <ErrorMessage>{errors.telContact?.message}</ErrorMessage>
-                                )} 
+                                 
                             </div>
 
                             <div className="md:col-span-6">
@@ -315,10 +325,7 @@ const FormRegister = () => {
                                     name="observ"
                                     {...register('observ')}
                                 ></textarea>
-
-                                {errors.observ && (
-                                    <ErrorMessage>{errors.observ?.message}</ErrorMessage>
-                                )} 
+                                
                             </div>
 
                             <div className="md:col-span-6 flex items-center mt-4">
@@ -338,6 +345,10 @@ const FormRegister = () => {
                                     <option value="100">100</option>
                                     <option value="200">200</option>
                                 </select>
+
+                                {errors.local && (
+                                    <ErrorMessage>{errors.local?.message}</ErrorMessage>
+                                )} 
                             </div>
                         </div>
                         

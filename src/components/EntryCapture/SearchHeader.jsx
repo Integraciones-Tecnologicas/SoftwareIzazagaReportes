@@ -282,9 +282,10 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
       </div>
 
       {/* Campo Cantidad */}
-      <div className="md:col-span-4">
-        <label className="block font-semibold text-gray-700 mb-2" htmlFor="quantity">
-          Cantidad
+      <div className="md:col-span-4 py-2">
+        <span className="text-gray-700 font-bold">(Favor de Capturar caja por caja)</span>
+        <label className="py-2 block font-semibold text-gray-700 mb-2" htmlFor="quantity">
+          Cantidad por Caja
         </label>
         <input
           id="quantity"

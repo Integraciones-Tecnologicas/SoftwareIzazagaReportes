@@ -5,73 +5,79 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile } from "@fortawesome/free-regular-svg-icons";
 import useStore from "../store/store";
 import { ToastContainer, toast } from "react-toastify";
+import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const CatalogPage = () => {
-  const [productos, setProductos] = useState([]); // Estado para almacenar los productos
-  const [loading, setLoading] = useState(true); // Estado para manejar la carga
-  const [error, setError] = useState(null); // Estado para manejar errores
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const currentUser = useStore((state) => state.currentUser);
- 
-  // Función para obtener los productos
+
   const fetchProductos = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/productos`, {
         params: { LocatarioId: 0 },
       });
       
-      // Verificar que la respuesta contiene el arreglo 'SDTProds'
       if (response.data.SDTProds && Array.isArray(response.data.SDTProds)) {
-        setProductos(response.data.SDTProds); // Usar el arreglo de productos
+        setProductos(response.data.SDTProds);
       } else {
         throw new Error("No se encontraron productos.");
       }
     } catch (error) {
-      setError(error.message); // Manejar errores
+      setError(error.message);
     } finally {
-      setLoading(false); // Finalizar la carga
+      setLoading(false);
     }
   };
-  
+
   const handleEliminarProducto = async (sku) => {
     try {
-      const Locatarioid = 2; // Valor fijo por ahora
-  
-      // Confirmación antes de eliminar
+      const Locatarioid = 2;
+
       const confirmacion = window.confirm(`¿Seguro que deseas eliminar el producto con SKU: ${sku}?`);
       if (!confirmacion) return;
-  
+
       const response = await axios.get(
         `${import.meta.env.VITE_API_SERVER}/api/eliminar-producto?Locatarioid=${Locatarioid}&Prodssku=${sku}`
       );
-  
+
       toast.success("Producto eliminado correctamente");
-      
-      // Actualizar la lista de productos
       fetchProductos();
     } catch (error) {
       console.error("Error al eliminar producto:", error);
       toast("Error al eliminar el producto");
     }
   };
-  
 
-  // Cargar los productos cuando el componente se monta
   useEffect(() => {
     fetchProductos();
   }, []);
 
-  if (loading) {
-    return <p>Cargando productos...</p>; // Mostrar un mensaje de carga
-  }
-
-  if (error) {
-    return <p>Error: {error}</p>; // Mostrar un mensaje de error
-  }
-
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
   };
+
+  const openUpdateModal = (producto) => {
+    setSelectedProduct(producto);
+    setEditModalOpen(true);
+  };
+
+  const closeUpdateModal = () => {
+    setEditModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  if (loading) {
+    return <p>Cargando productos...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto mt-5 bg-white shadow-md rounded-lg p-6">
@@ -102,7 +108,7 @@ const CatalogPage = () => {
                 {currentUser.role === "admin" ? (
                 <th className="px-4 py-3 border-b">Locatario</th>
                 ) : ("")}
-                <th className="px-4 py-3 border-b">Acción</th>
+                <th className="px-4 py-3 border-b">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -120,11 +126,19 @@ const CatalogPage = () => {
                   {currentUser.role === "admin" ? (
                     <td className="px-4 py-3 border-b">{producto.LocatarioId} </td>
                   ) : ("")}
-                  <td className="px-4 py-3 border-b">
+                  <td className="px-3 py-3 border-b flex space-x-5">
                     <button
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
+                      className="text-indigo-600 hover:text-indigo-700 flex items-center"
+                      onClick={() => openUpdateModal(producto)}
+                    >
+                      <FontAwesomeIcon icon={faEdit} size="2xl" />
+                    </button>
+                    <button
+                      className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
                       onClick={() => handleEliminarProducto(producto.ProdsSKU)}
-                    >Eliminar </button>
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -139,6 +153,34 @@ const CatalogPage = () => {
             <RegisterProduct toggleModal={toggleModal} onProductCreated={fetchProductos} />
             <button
               onClick={toggleModal}
+              className="absolute text-2xl top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {editModalOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-200 rounded-xl shadow-lg p-8 w-full max-w-4xl relative overflow-y-auto max-h-screen">
+            <RegisterProduct
+              toggleModal={closeUpdateModal}
+              initialData={{
+                ProdId: selectedProduct.ProdId,
+                sku: selectedProduct.ProdsSKU,
+                description: selectedProduct.ProdsDescrip,
+                cost: selectedProduct.ProdsCosto,
+                price: selectedProduct.ProdsPrecio1,
+                line: selectedProduct.ProdsLinea,
+                subfamily: selectedProduct.ProdsFamilia,
+                piracy: Boolean(selectedProduct.ProdsChek1),
+                observations: selectedProduct.ProdsObserv,
+              }}
+              onProductCreated={fetchProductos}
+            />
+            <button
+              onClick={closeUpdateModal}
               className="absolute text-2xl top-2 right-2 text-gray-500 hover:text-gray-700"
             >
               ✕
