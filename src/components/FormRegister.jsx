@@ -4,13 +4,12 @@ import { ToastContainer, toast } from "react-toastify";
 import { CiSearch } from "react-icons/ci";
 import ErrorMessage from "./ErrorMessage";
 import { useState, useEffect } from "react";
-import Prueba3 from "./Pruebas/Prueba3";
 
 const FormRegister = () => {
     const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm();
     const nameTenant = watch("nameTenant");
     const [searchResults, setSearchResults] = useState([]);
-    const [locatarioId, setLocatarioId] = useState(null); // Estado para almacenar el ID del locatario
+    const [locatarioId, setLocatarioId] = useState(null);
 
     const buscarLocatarios = async (nombre) => {
         try {
@@ -39,7 +38,6 @@ const FormRegister = () => {
             );
             const locatarioData = response.data;
 
-            // Llenar los campos del formulario
             setValue("nameTenant", locatarioData.LocatarioNombre);
             setValue("email", locatarioData.LocatarioEmail);
             setValue("address", locatarioData.LocatarioDireccion);
@@ -50,10 +48,10 @@ const FormRegister = () => {
             setValue("telContact", locatarioData.LocatarioTelContacto || "");
             setValue("observ", locatarioData.LocatarioObservacion || "");
             setValue("local", locatarioData.LocatarioActivo || "");
+            setValue("usuario", locatarioData.UsuCuenta || "");
+            setValue("password", locatarioData.UsuPassword || "");
 
-            // Guardar el ID del locatario
             setLocatarioId(locatarioData.LocatarioId);
-
             setSearchResults([]);
         } catch (error) {
             console.error("Error al obtener detalles del locatario:", error);
@@ -63,48 +61,30 @@ const FormRegister = () => {
 
     const registerTenant = async (data) => {
         try {
-            if (locatarioId) {
-                // Si hay un LocatarioId, actualizar el locatario
-                const response = await axios.post(
-                    `${import.meta.env.VITE_API_SERVER}/api/actualizar-locatario`,
-                    {
-                        LocatarioId: locatarioId,
-                        LocatarioNombre: data.nameTenant,
-                        LocatarioDireccion: data.address,
-                        LocatarioEmail: data.email,
-                        UsuId: "1",
-                        LocatarioTelefono: data.telTenant,
-                        LocatarioTel2: data.telTenant2 || "",
-                        LocatarioRFC: data.rfc || "",
-                        LocatarioNomContacto: data.contactName,
-                        LocatarioTelContacto: data.telContact || "",
-                        LocatarioActivo: "S",
-                        LocatarioObservacion: data.observ || ""
-                    }
-                );
-                toast.success("Locatario actualizado correctamente");
-            } else {
-                // Si no hay un LocatarioId, registrar un nuevo locatario
-                const response = await axios.post(
-                    `${import.meta.env.VITE_API_SERVER}/api/locatario`,
-                    {
-                        LocatarioNombre: data.nameTenant,
-                        LocatarioDireccion: data.address,
-                        LocatarioEmail: data.email,
-                        UsuId: "1",
-                        LocatarioTelefono: data.telTenant,
-                        LocatarioTel2: data.telTenant2 || "",
-                        LocatarioRFC: data.rfc || "",
-                        LocatarioNomContacto: data.contactName,
-                        LocatarioTelContacto: data.telContact || "",
-                        LocatarioActivo: "S",
-                        LocatarioObservacion: data.observ || ""
-                    }
-                );
-                toast.success("Locatario registrado correctamente");
-            }
+            const payload = {
+                LocatarioNombre: data.nameTenant,
+                LocatarioDireccion: data.address,
+                LocatarioEmail: "", // Email vacío como solicitado
+                UsuId: "1", // Asumiendo que UsuId es un valor fijo o dinámico
+                LocatarioTelefono: data.telTenant,
+                LocatarioTel2: data.telTenant2 || "",
+                LocatarioRFC: data.rfc || "",
+                LocatarioNomContacto: data.contactName,
+                LocatarioTelContacto: data.telContact || "",
+                LocatarioActivo: "S",
+                LocatarioObservacion: data.observ || "",
+                UsuCuenta: data.usuario, // Nuevo campo de usuario
+                UsuPassword: data.password // Nuevo campo de contraseña
+            };
+
+            const url = locatarioId 
+                ? `${import.meta.env.VITE_API_SERVER}/api/actualizar-locatario`
+                : `${import.meta.env.VITE_API_SERVER}/api/locatario`;
+
+            const response = await axios.post(url, payload);
+            toast.success(locatarioId ? "Locatario actualizado correctamente" : "Locatario registrado correctamente");
             reset();
-            setLocatarioId(null); // Limpiar el ID después de guardar
+            setLocatarioId(null);
         } catch (error) {
             console.error("Error al registrar/actualizar el locatario:", error);
             toast.error("Hubo un error al registrar/actualizar el locatario.");
@@ -124,11 +104,12 @@ const FormRegister = () => {
             telContact: "",
             observ: "",
             local: "",
+            usuario: "",
+            password: ""
         });
         setSearchResults([]);
-        setLocatarioId(null); // Limpiar el ID al limpiar el formulario
+        setLocatarioId(null);
     };
-
 
     return (
         <>
@@ -181,7 +162,7 @@ const FormRegister = () => {
                             </button>
                         </div>
                         
-                        <div className="md:col-span-6">
+                        {/* <div className="md:col-span-6">
                             <label htmlFor="email" className="font-bold text-gray-700">
                                 Usuario
                             </label>
@@ -197,44 +178,62 @@ const FormRegister = () => {
                             {errors.email && (
                                 <ErrorMessage>{errors.email?.message}</ErrorMessage>
                             )}
+                        </div> */}
+
+                        <div className="md:col-span-6">
+                            <label htmlFor="usuario" className="font-bold text-gray-700">
+                                Usuario
+                            </label>
+                            <input
+                                id="usuario"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
+                                placeholder="Usuario del Locatario"
+                                {...register('usuario', {
+                                    required: 'El Usuario del locatario es Obligatorio'
+                                })}
+                            />
+                            {errors.usuario && (
+                                <ErrorMessage>{errors.usuario?.message}</ErrorMessage>
+                            )}
                         </div>
 
-                    <div className="md:col-span-6">
-                    <label htmlFor="password" className="text-gray-700 font-bold">
-                        Contraseña
-                    </label>
-                    <input  
-                        id="password"
-                        className="w-full p-3 border border-gray-500 rounded-md"  
-                        type="password" 
-                        placeholder="Contraseña del Locatario"
-                        {...register('password', {
-                        required: 'La contraseña del locatario es Obligatoria'
-                        })}
-                    />
-                    {errors.password && (
-                        <ErrorMessage>{errors.password?.message}</ErrorMessage>
-                    )}
-                    </div>
+                        <div className="md:col-span-6">
+                            <label htmlFor="password" className="text-gray-700 font-bold">
+                                Contraseña
+                            </label>
+                            <input
+                                id="password"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="password"
+                                placeholder="Contraseña del Locatario"
+                                {...register('password', {
+                                    required: 'La contraseña del locatario es Obligatoria'
+                                })}
+                            />
+                            {errors.password && (
+                                <ErrorMessage>{errors.password?.message}</ErrorMessage>
+                            )}
+                        </div>
 
-                            <div className="md:col-span-6">
-                                <label htmlFor="address" className="text-gray-700 font-bold">
-                                    Dirección
-                                </label>
-                                <input  
-                                    id="address"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    type="text" 
-                                    placeholder="Dirección del Locatario"
-                                    {...register('address', {
-                                        required: 'La dirección del locatario es Obligatoria'
-                                    })}
-                                />
-                                
-                                {errors.address && (
-                                    <ErrorMessage>{errors.address?.message}</ErrorMessage>
-                                )}
-                            </div>
+                        <div className="md:col-span-6">
+                            <label htmlFor="address" className="text-gray-700 font-bold">
+                                Dirección
+                            </label>
+                            <input  
+                                id="address"
+                                className="w-full p-3 border border-gray-500 rounded-md"  
+                                type="text" 
+                                placeholder="Dirección del Locatario"
+                                {...register('address', {
+                                    required: 'La dirección del locatario es Obligatoria'
+                                })}
+                            />
+                            
+                            {errors.address && (
+                                <ErrorMessage>{errors.address?.message}</ErrorMessage>
+                            )}
+                        </div>
 
                             <div className="md:col-span-6">
                                 <label htmlFor="telTenant" className="text-gray-700 font-bold">
