@@ -49,7 +49,7 @@ const Header = () => {
             <>
               {currentUser.role === "admin" && (
                 <li className="hover:text-indigo-700 hover:underline transition duration-300 px-6 md:px-0 py-2 md:py-0">
-                  <Link to="/registro" onClick={closeMenu}>Registro de Locatarios</Link>
+                  <Link to="/registro" onClick={closeMenu}>Registro Locatarios</Link>
                   <span className="hidden md:inline text-gray-400 ml-1">|</span>
                 </li>
               )}

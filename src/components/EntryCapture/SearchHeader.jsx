@@ -265,33 +265,35 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
         />
       </div>
 
-      {/* Botón Crear Nuevo */}
-      <div className="md:col-span-1">
-        <button title="Crear Producto" onClick={toggleModal} className="relative text-blue-600 hover:text-blue-800">
-          <FontAwesomeIcon icon={faFile} size="2x" />
-          <span className="absolute top-0 left-full px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Crear Nuevo
-          </span>
-        </button>
-      </div>
-
-      {/* Botón Editar */}
-      <div className="md:col-span-1">
-        {update && (
-          <button
-            title="Editar Producto"
-            onClick={openUpdateModal}
-            className="text-indigo-600 hover:text-indigo-700 flex items-center"
-          >
-            <FontAwesomeIcon icon={faEdit} size="2xl" />
+      <div className="flex">
+        {/* Botón Crear Nuevo */}
+        <div className="col-span-1 px-4">
+          <button title="Crear Producto" onClick={toggleModal} className="relative text-blue-600 hover:text-blue-800">
+            <FontAwesomeIcon icon={faFile} size="2x" />
+            <span className="absolute top-0 left-full px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              Crear Nuevo
+            </span>
           </button>
-        )}
-      </div>
+        </div>
 
+        {/* Botón Editar */}
+        <div className="col-span-1 px-4">
+          {update && (
+            <button
+              title="Editar Producto"
+              onClick={openUpdateModal}
+              className="text-indigo-600 hover:text-indigo-700 flex items-center"
+            >
+              <FontAwesomeIcon icon={faEdit} size="2xl" />
+            </button>
+          )}
+        </div>
+      </div>
+      
       {/* Campo Descripción */}
       <div className="md:col-span-4 relative">
         <label className="block font-semibold text-gray-700 mb-2" htmlFor="description">
-          Descripción
+          Descripción <FontAwesomeIcon icon={faMagnifyingGlass} />
         </label>
         <input
           id="description"
