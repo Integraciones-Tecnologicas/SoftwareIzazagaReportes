@@ -61,27 +61,53 @@ const FormRegister = () => {
 
     const registerTenant = async (data) => {
         try {
-            const payload = {
-                LocatarioNombre: data.nameTenant,
-                LocatarioDireccion: data.address,
-                LocatarioEmail: "", // Email vacío como solicitado
-                UsuId: "1", // Asumiendo que UsuId es un valor fijo o dinámico
-                LocatarioTelefono: data.telTenant,
-                LocatarioTel2: data.telTenant2 || "",
-                LocatarioRFC: data.rfc || "",
-                LocatarioNomContacto: data.contactName,
-                LocatarioTelContacto: data.telContact || "",
-                LocatarioActivo: "S",
-                LocatarioObservacion: data.observ || "",
-                UsuCuenta: data.usuario, // Nuevo campo de usuario
-                UsuPassword: data.password // Nuevo campo de contraseña
-            };
-
-            const url = locatarioId 
+            const payload = locatarioId
+                ? {
+                    LocatarioId: locatarioId, // Incluir el ID para actualizar
+                    LocatarioNombre: data.nameTenant,
+                    LocatarioDireccion: data.address,
+                    LocatarioEmail: data.email,
+                    UsuId: "1", // Asumiendo que UsuId es un valor fijo o dinámico
+                    LocatarioTelefono: data.telTenant,
+                    LocatarioTel2: data.telTenant2 || "",
+                    LocatarioRFC: data.rfc || "",
+                    LocatarioNomContacto: data.contactName,
+                    LocatarioTelContacto: data.telContact || "",
+                    LocatarioActivo: "S",
+                    LocatarioObservacion: data.observ || "",
+                    UsuCuenta: data.usuario,
+                    UsuPassword: data.password
+                }
+                : {
+                    SDTCuentaLocatario: {
+                        LocatarioNombre: data.nameTenant,
+                        LocatarioDireccion: data.address,
+                        LocatarioEmail: "", // Email vacío como solicitado
+                        UsuId: "1", // Asumiendo que UsuId es un valor fijo o dinámico
+                        LocatarioTelefono: data.telTenant,
+                        LocatarioTel2: data.telTenant2 || "",
+                        LocatarioRFC: data.rfc || "",
+                        LocatarioNomContacto: data.contactName,
+                        LocatarioTelContacto: data.telContact || "",
+                        LocatarioActivo: "S",
+                        LocatarioObservacion: data.observ || "",
+                        UsuCuenta: data.usuario,
+                        UsuPassword: data.password
+                    }
+                };
+    
+            console.log("Payload enviado:", payload); // Depuración
+    
+            const url = locatarioId
                 ? `${import.meta.env.VITE_API_SERVER}/api/actualizar-locatario`
                 : `${import.meta.env.VITE_API_SERVER}/api/locatario`;
-
-            const response = await axios.post(url, payload);
+    
+            const response = await axios.post(url, payload, {
+                headers: {
+                    'Content-Type': 'application/json', // Asegúrate de que el header esté configurado
+                },
+            });
+    
             toast.success(locatarioId ? "Locatario actualizado correctamente" : "Locatario registrado correctamente");
             reset();
             setLocatarioId(null);
@@ -104,8 +130,7 @@ const FormRegister = () => {
             telContact: "",
             observ: "",
             local: "",
-            usuario: "",
-            password: ""
+            usuario: ""
         });
         setSearchResults([]);
         setLocatarioId(null);
@@ -115,8 +140,6 @@ const FormRegister = () => {
         <>
             <ToastContainer />
             <div className="mx-auto max-w-5xl mt-10 p-5 bg-white shadow-md rounded-md">
-                {/* <Prueba3 /> */}
-
                 <h2 className="font-bold text-2xl text-center mb-8">Datos Generales Locatarios</h2>
 
                 <form noValidate onSubmit={handleSubmit(registerTenant)}>
@@ -137,7 +160,6 @@ const FormRegister = () => {
                             {errors.nameTenant && (
                                 <ErrorMessage>{errors.nameTenant?.message}</ErrorMessage>
                             )}
-                            {/* Mostrar resultados de la búsqueda */}
                             {searchResults.length > 0 && (
                                 <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg">
                                     {searchResults.map((locatario) => (
@@ -161,24 +183,6 @@ const FormRegister = () => {
                                 ❌ Limpiar
                             </button>
                         </div>
-                        
-                        {/* <div className="md:col-span-6">
-                            <label htmlFor="email" className="font-bold text-gray-700">
-                                Usuario
-                            </label>
-                            <input
-                                id="email"
-                                className="w-full p-3 border border-gray-500 rounded-md"
-                                type="email"
-                                placeholder="Usuario del Locatario"
-                                {...register('email', {
-                                    required: 'El Usuario del locatario es Obligatoria'
-                                })}
-                            />
-                            {errors.email && (
-                                <ErrorMessage>{errors.email?.message}</ErrorMessage>
-                            )}
-                        </div> */}
 
                         <div className="md:col-span-6">
                             <label htmlFor="usuario" className="font-bold text-gray-700">
@@ -220,148 +224,141 @@ const FormRegister = () => {
                             <label htmlFor="address" className="text-gray-700 font-bold">
                                 Dirección
                             </label>
-                            <input  
+                            <input
                                 id="address"
-                                className="w-full p-3 border border-gray-500 rounded-md"  
-                                type="text" 
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
                                 placeholder="Dirección del Locatario"
                                 {...register('address', {
                                     required: 'La dirección del locatario es Obligatoria'
                                 })}
                             />
-                            
                             {errors.address && (
                                 <ErrorMessage>{errors.address?.message}</ErrorMessage>
                             )}
                         </div>
 
-                            <div className="md:col-span-6">
-                                <label htmlFor="telTenant" className="text-gray-700 font-bold">
-                                    Teléfono
-                                </label>
-                                <input  
-                                    id="telTenant"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    type="text" 
-                                    placeholder="Teléfono del Locatario"
-                                    {...register('telTenant', {
-                                        required: 'El teléfono del locatario es Obligatorio'
-                                    })}
-                                />
-
-                                {errors.telTenant && (
-                                    <ErrorMessage>{errors.telTenant?.message}</ErrorMessage>
-                                )}
-                            </div>
-
-                            <div className="md:col-span-6">
-                                <label htmlFor="telTenant2" className="text-gray-700 font-bold">
-                                    Teléfono Secundario
-                                </label>
-                                <input  
-                                    id="telTenant2"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    type="text" 
-                                    placeholder="Teléfono secundario del Locatario (opcional)"
-                                    {...register('telTenant2')}
-                                />
-                            </div>
-
-                            <div className="md:col-span-8">
-                                <label htmlFor="rfc" className="text-gray-700 font-bold">
-                                    RFC
-                                </label>
-                                <input  
-                                    id="rfc"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    type="text" 
-                                    placeholder="RFC del Locatario"
-                                    {...register('rfc', {
-                                        required: 'El RFC del locatario es Obligatorio'
-                                    })}
-                                />
-
-                                {errors.rfc && (
-                                    <ErrorMessage>{errors.rfc?.message}</ErrorMessage>
-                                )} 
-                            </div>
-
-                            <div className="md:col-span-6">
-                                <label htmlFor="contactName" className="text-gray-700 font-bold">
-                                    Nombre Contacto 
-                                </label>
-                                <input  
-                                    id="contactName"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    type="text" 
-                                    placeholder="Nombre Contacto"
-                                    {...register('contactName')}
-                                />
-                                
-                            </div>
-
-                            <div className="md:col-span-6">
-                                <label htmlFor="telContact" className="text-gray-700 font-bold">
-                                    Teléfono Contacto
-                                </label>
-                                <input  
-                                    id="telContact"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    type="text" 
-                                    placeholder="Teléfono del Contacto" 
-                                    {...register('telContact')}
-                                />
-                                 
-                            </div>
-
-                            <div className="md:col-span-6">
-                                <label htmlFor="observ" className="text-gray-700 font-bold">
-                                    Observaciones
-                                </label>
-                                <textarea  
-                                    id="observ"
-                                    className="w-full p-3 border border-gray-500 rounded-md"  
-                                    name="observ"
-                                    {...register('observ')}
-                                ></textarea>
-                                
-                            </div>
-
-                            <div className="md:col-span-6 flex items-center mt-4">
-                                <label 
-                                    htmlFor="local"
-                                    className="block text-gray-700  text-base font-bold mb-2 mr-2"
-                                >Locales</label>
-                                <select
-                                    name="local" 
-                                    id="local" 
-                                    className="w-full p-2 border border-gray-300 rounded-md"
-                                    {...register('local', {
-                                        required: 'Selecciona al menos un local'
-                                    })}
-                                >
-                                    <option value="">--Seleccione--</option>
-                                    <option value="100">100</option>
-                                    <option value="200">200</option>
-                                </select>
-
-                                {errors.local && (
-                                    <ErrorMessage>{errors.local?.message}</ErrorMessage>
-                                )} 
-                            </div>
-                        </div>
-                        
-                        <div className="flex justify-end mt-5">
+                        <div className="md:col-span-6">
+                            <label htmlFor="telTenant" className="text-gray-700 font-bold">
+                                Teléfono
+                            </label>
                             <input
-                            type="submit"
-                            className="bg-indigo-600 w-full p-3 uppercase text-white font-bold hover:bg-indigo-700 cursor-pointer transition-colors"
-                            value={locatarioId ? 'Actualizar' :'Registrar'}
+                                id="telTenant"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
+                                placeholder="Teléfono del Locatario"
+                                {...register('telTenant', {
+                                    required: 'El teléfono del locatario es Obligatorio'
+                                })}
+                            />
+                            {errors.telTenant && (
+                                <ErrorMessage>{errors.telTenant?.message}</ErrorMessage>
+                            )}
+                        </div>
+
+                        <div className="md:col-span-6">
+                            <label htmlFor="telTenant2" className="text-gray-700 font-bold">
+                                Teléfono Secundario
+                            </label>
+                            <input
+                                id="telTenant2"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
+                                placeholder="Teléfono secundario del Locatario (opcional)"
+                                {...register('telTenant2')}
                             />
                         </div>
-                </form> 
+
+                        <div className="md:col-span-8">
+                            <label htmlFor="rfc" className="text-gray-700 font-bold">
+                                RFC
+                            </label>
+                            <input
+                                id="rfc"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
+                                placeholder="RFC del Locatario"
+                                {...register('rfc', {
+                                    required: 'El RFC del locatario es Obligatorio'
+                                })}
+                            />
+                            {errors.rfc && (
+                                <ErrorMessage>{errors.rfc?.message}</ErrorMessage>
+                            )}
+                        </div>
+
+                        <div className="md:col-span-6">
+                            <label htmlFor="contactName" className="text-gray-700 font-bold">
+                                Nombre Contacto
+                            </label>
+                            <input
+                                id="contactName"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
+                                placeholder="Nombre Contacto"
+                                {...register('contactName')}
+                            />
+                        </div>
+
+                        <div className="md:col-span-6">
+                            <label htmlFor="telContact" className="text-gray-700 font-bold">
+                                Teléfono Contacto
+                            </label>
+                            <input
+                                id="telContact"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                type="text"
+                                placeholder="Teléfono del Contacto"
+                                {...register('telContact')}
+                            />
+                        </div>
+
+                        <div className="md:col-span-6">
+                            <label htmlFor="observ" className="text-gray-700 font-bold">
+                                Observaciones
+                            </label>
+                            <textarea
+                                id="observ"
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                {...register('observ')}
+                            ></textarea>
+                        </div>
+
+                        <div className="md:col-span-6 flex items-center mt-4">
+                            <label
+                                htmlFor="local"
+                                className="block text-gray-700 text-base font-bold mb-2 mr-2"
+                            >
+                                Locales
+                            </label>
+                            <select
+                                id="local"
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                                {...register('local', {
+                                    required: 'Selecciona al menos un local'
+                                })}
+                            >
+                                <option value="">--Seleccione--</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            {errors.local && (
+                                <ErrorMessage>{errors.local?.message}</ErrorMessage>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end mt-5">
+                        <input
+                            type="submit"
+                            className="bg-indigo-600 w-full p-3 uppercase text-white font-bold hover:bg-indigo-700 cursor-pointer transition-colors"
+                            value={locatarioId ? 'Actualizar' : 'Registrar'}
+                        />
+                    </div>
+                </form>
             </div>
-    </>
-  );
+        </>
+    );
 };
 
 export default FormRegister;
