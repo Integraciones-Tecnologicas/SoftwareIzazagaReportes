@@ -356,7 +356,7 @@ const FormRegister = () => {
                             <input
                             type="submit"
                             className="bg-indigo-600 w-full p-3 uppercase text-white font-bold hover:bg-indigo-700 cursor-pointer transition-colors"
-                            value='Registrar'
+                            value={locatarioId ? 'Actualizar' :'Registrar'}
                             />
                         </div>
                 </form> 

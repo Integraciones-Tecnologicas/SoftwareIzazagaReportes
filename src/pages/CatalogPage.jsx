@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile } from "@fortawesome/free-regular-svg-icons";
 import useStore from "../store/store";
 import { ToastContainer, toast } from "react-toastify";
-import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const CatalogPage = () => {
   const [productos, setProductos] = useState([]);
@@ -14,14 +14,16 @@ const CatalogPage = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
   const currentUser = useStore((state) => state.currentUser);
 
+  // Función para obtener todos los productos
   const fetchProductos = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/productos`, {
         params: { LocatarioId: 0 },
       });
-      
+
       if (response.data.SDTProds && Array.isArray(response.data.SDTProds)) {
         setProductos(response.data.SDTProds);
       } else {
@@ -34,6 +36,26 @@ const CatalogPage = () => {
     }
   };
 
+  // Función para buscar productos por descripción
+  const buscarProductosPorDescripcion = async (descripcion) => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-productos`, {
+        params: { Locatarioid: 2, Prodsdescrip: descripcion },
+      });
+
+      if (response.data && response.data.SDTProds && response.data.SDTProds.length > 0) {
+        setProductos(response.data.SDTProds); // Actualizar la lista de productos con los resultados
+      } else {
+        setProductos([]); // Limpiar la lista si no hay resultados
+        toast.info("No se encontraron productos con esa descripción.");
+      }
+    } catch (error) {
+      console.error("Error al buscar productos por descripción:", error);
+      toast.error("Hubo un error al buscar productos.");
+    }
+  };
+
+  // Función para manejar la eliminación de un producto
   const handleEliminarProducto = async (sku) => {
     try {
       const Locatarioid = 2;
@@ -46,16 +68,26 @@ const CatalogPage = () => {
       );
 
       toast.success("Producto eliminado correctamente");
-      fetchProductos();
+      fetchProductos(); // Actualizar la lista de productos después de eliminar
     } catch (error) {
       console.error("Error al eliminar producto:", error);
-      toast("Error al eliminar el producto");
+      toast.error("Error al eliminar el producto");
     }
   };
 
+  // Efecto para cargar los productos al montar el componente
   useEffect(() => {
     fetchProductos();
   }, []);
+
+  // Efecto para buscar productos cuando cambia el término de búsqueda
+  useEffect(() => {
+    if (searchTerm.length > 2) {
+      buscarProductosPorDescripcion(searchTerm);
+    } else if (searchTerm === "") {
+      fetchProductos(); // Si el campo de búsqueda está vacío, cargar todos los productos
+    }
+  }, [searchTerm]);
 
   const toggleModal = () => {
     setModalOpen(!isModalOpen);
@@ -83,12 +115,30 @@ const CatalogPage = () => {
     <div className="max-w-6xl mx-auto mt-5 bg-white shadow-md rounded-lg p-6">
       <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Productos Registrados</h2>
       <ToastContainer />
+
+      {/* Campo de búsqueda */}
+      <div className="mb-6">
+        <label className="block font-semibold text-gray-700 mb-2" htmlFor="search">
+          Buscar por descripción <FontAwesomeIcon icon={faMagnifyingGlass} />
+        </label>
+        <input
+          id="search"
+          type="text"
+          placeholder="Ejemplo: Juguete"
+          className="w-full border border-indigo-700 rounded-lg px-4 py-2"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {/* Botón para crear nuevo producto */}
       <div className="md:col-span-2 py-2">
-        <button onClick={toggleModal} className="text-blue-600 hover:text-blue-800">
+        <button title="Crear Producto" onClick={toggleModal} className="text-blue-600 hover:text-blue-800">
           <FontAwesomeIcon icon={faFile} size="3x" />
         </button>
       </div>
 
+      {/* Tabla de productos */}
       {productos.length === 0 ? (
         <p className="text-center text-gray-500">No hay productos registrados.</p>
       ) : (
@@ -104,8 +154,10 @@ const CatalogPage = () => {
                 <th className="px-4 py-3 border-b">Imagen</th>
                 <th className="px-4 py-3 border-b">Observaciones</th>
                 {currentUser.role === "admin" ? (
-                <th className="px-4 py-3 border-b">Locatario</th>
-                ) : ("")}
+                  <th className="px-4 py-3 border-b">Locatario</th>
+                ) : (
+                  ""
+                )}
                 <th className="px-4 py-3 border-b">Acciones</th>
               </tr>
             </thead>
@@ -115,21 +167,25 @@ const CatalogPage = () => {
                   <td className="px-4 py-3 border-b">{producto.ProdsDescrip}</td>
                   <td className="px-4 py-3 border-b text-center">{producto.ProdsSKU || "N/A"}</td>
                   <td className="px-4 py-3 border-b text-center">{producto.ProdsPrecio1}</td>
-                  <td className="px-4 py-3 border-b">{producto.ProdsLinea}</td>                  
+                  <td className="px-4 py-3 border-b">{producto.ProdsLinea}</td>
                   <td className="px-4 py-3 border-b">{producto.ProdsChek1 ? "Sí" : "No"}</td>
                   <td className="px-4 py-3 border-b">{producto.imagen}</td>
                   <td className="px-4 py-3 border-b">{producto.ProdsObserv || "N/A"}</td>
                   {currentUser.role === "admin" ? (
-                    <td className="px-4 py-3 border-b">{producto.LocatarioId} </td>
-                  ) : ("")}
+                    <td className="px-4 py-3 border-b">{producto.LocatarioId}</td>
+                  ) : (
+                    ""
+                  )}
                   <td className="px-3 py-3 border-b flex space-x-5">
                     <button
+                      title="Editar Producto"
                       className="text-indigo-600 hover:text-indigo-700 flex items-center"
                       onClick={() => openUpdateModal(producto)}
                     >
                       <FontAwesomeIcon icon={faEdit} size="2xl" />
                     </button>
                     <button
+                      title="Eliminar Producto"
                       className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
                       onClick={() => handleEliminarProducto(producto.ProdsSKU)}
                     >
@@ -143,6 +199,7 @@ const CatalogPage = () => {
         </div>
       )}
 
+      {/* Modal para crear nuevo producto */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-200 rounded-xl shadow-lg p-8 w-full max-w-4xl relative overflow-y-auto max-h-screen">
@@ -157,6 +214,7 @@ const CatalogPage = () => {
         </div>
       )}
 
+      {/* Modal para editar producto */}
       {editModalOpen && selectedProduct && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-200 rounded-xl shadow-lg p-8 w-full max-w-4xl relative overflow-y-auto max-h-screen">

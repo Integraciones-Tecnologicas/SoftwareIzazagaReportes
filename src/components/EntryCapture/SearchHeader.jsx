@@ -17,6 +17,8 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [update, setUpdate] = useState(false);
+  const [searchResults, setSearchResults] = useState([]); // Estado para almacenar los resultados de búsqueda
+  const [showDropdown, setShowDropdown] = useState(false); // Estado para controlar el desplegable
 
   // Función para buscar productos por SKU
   const buscarProducto = async (sku) => {
@@ -76,10 +78,47 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
     }
   };
 
+  // Función para buscar productos por descripción
+  const buscarProductoPorDescripcion = async (descripcion) => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-productos`, {
+        params: { Locatarioid: 0, Prodsdescrip: descripcion },
+      });
+
+      // Verificar si la respuesta contiene productos
+      if (response.data && response.data.SDTProds && response.data.SDTProds.length > 0) {
+        setSearchResults(response.data.SDTProds); // Almacenar los resultados de búsqueda
+        setShowDropdown(true); // Mostrar el desplegable
+      } else {
+        setSearchResults([]); // Limpiar los resultados si no hay coincidencias
+        setShowDropdown(false); // Ocultar el desplegable
+        toast.info("No se encontraron productos con esa descripción.");
+      }
+    } catch (error) {
+      console.error("Error al buscar producto por descripción:", error);
+      toast.error("Hubo un error al buscar el producto por descripción.");
+    }
+  };
+
+  // Función para manejar la selección de un producto del desplegable
+  const handleSelectProduct = (producto) => {
+    setFormData({
+      sku: producto.ProdsSKU,
+      description: producto.ProdsDescrip,
+      cost: producto.ProdsCosto,
+      price: producto.ProdsPrecio1,
+      quantity: formData.quantity, // Mantener la cantidad actual
+    });
+    setSelectedEntry(producto);
+    setUpdate(true);
+    setShowDropdown(false); // Ocultar el desplegable después de seleccionar
+    toast.info("Producto seleccionado y datos llenados automáticamente");
+  };
+
   // Manejar cambios en los inputs
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-  
+
     if (id === "sku") {
       if (value.length > 2) {
         buscarProducto(value);
@@ -95,8 +134,25 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
         setSelectedEntry(null);
         setUpdate(false);
       }
+    } else if (id === "description") {
+      if (value.length > 1) {
+        buscarProductoPorDescripcion(value);
+      } else if (value === "") {
+        // Limpiar todos los campos excepto la cantidad si la descripción está vacía
+        setFormData({
+          sku: "",
+          description: "",
+          cost: "",
+          price: "",
+          quantity: formData.quantity, // Mantener la cantidad actual
+        });
+        setSelectedEntry(null);
+        setUpdate(false);
+        setSearchResults([]); // Limpiar los resultados de búsqueda
+        setShowDropdown(false); // Ocultar el desplegable
+      }
     }
-  
+
     setFormData((prevData) => ({
       ...prevData,
       [id]: value,
@@ -211,7 +267,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
 
       {/* Botón Crear Nuevo */}
       <div className="md:col-span-1">
-        <button onClick={toggleModal} className="relative text-blue-600 hover:text-blue-800">
+        <button title="Crear Producto" onClick={toggleModal} className="relative text-blue-600 hover:text-blue-800">
           <FontAwesomeIcon icon={faFile} size="2x" />
           <span className="absolute top-0 left-full px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Crear Nuevo
@@ -223,6 +279,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
       <div className="md:col-span-1">
         {update && (
           <button
+            title="Editar Producto"
             onClick={openUpdateModal}
             className="text-indigo-600 hover:text-indigo-700 flex items-center"
           >
@@ -232,32 +289,45 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
       </div>
 
       {/* Campo Descripción */}
-      <div className="md:col-span-4">
+      <div className="md:col-span-4 relative">
         <label className="block font-semibold text-gray-700 mb-2" htmlFor="description">
           Descripción
         </label>
         <input
           id="description"
           type="text"
-          readOnly
           placeholder="Ejemplo: Producto X"
           className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.description}
           onChange={handleInputChange}
         />
+        {/* Desplegable de resultados de búsqueda */}
+        {showDropdown && searchResults.length > 0 && (
+          <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+            {searchResults.map((producto, index) => (
+              <li
+                key={index}
+                className="p-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleSelectProduct(producto)}
+              >
+                {producto.ProdsDescrip} (SKU: {producto.ProdsSKU})
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {/* Campo Costo */}
+      {/*Campo Costo */}
       <div className="md:col-span-2">
-        <label className="block font-semibold text-gray-700 mb-2" htmlFor="cost">
+        <label className="block font-semibold text-gray-700 mb-2" htmlFor="price">
           Costo
         </label>
         <input
-          id="cost"
+          id="price"
           type="text"
           readOnly
           min={0}
-          placeholder="Ejemplo: 100"
+          placeholder="Ejemplo: 150"
           className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.cost}
           onChange={handleInputChange}
