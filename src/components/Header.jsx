@@ -20,11 +20,11 @@ const Header = () => {
 
   return (
     <header className="bg-zinc-200 shadow-xl">
-      <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4 ">
+      <nav className="max-w-screen-2xl mx-auto flex items-center justify-between px-3 py-4 ">
         {/* Logo / Icono de Casa */}
         <Link
           to="/"
-          className="text-indigo-600 text-4xl hover:text-indigo-700 transition duration-300 mr-2"
+          className="text-indigo-600 text-4xl hover:text-indigo-700 transition duration-300 mr-9"
           onClick={closeMenu}
         >
           <FontAwesomeIcon icon={faHouse} />
@@ -42,7 +42,7 @@ const Header = () => {
         <ul
           className={`${
             isOpen ? "block" : "hidden"
-          } absolute md:static top-16 left-0 w-full md:w-full md:ml-4 lg:ml-8 bg-zinc-200 md:bg-transparent text-base md:flex gap-4 text-indigo-500 transition-all duration-100 md:items-center font-medium z-50`}
+          } absolute md:static top-16 left-0 w-full md:w-full md:ml-6 lg:ml-20 bg-zinc-200 md:bg-transparent text-base md:flex gap-4 text-indigo-500 transition-all duration-100 md:items-center font-medium z-50`}
         >
           {/* Mostrar enlaces solo si no estamos en la página de inicio */}
           {location.pathname !== "/" && (
@@ -67,7 +67,7 @@ const Header = () => {
               </li>
               {currentUser.role === "admin" && (
                 <li className="hover:text-indigo-700 hover:underline transition duration-300 px-6 md:px-0 py-2 md:py-0">
-                  <Link to="/revision-ingreso" onClick={closeMenu}>Revisión de Ingreso</Link>
+                  <Link to="/revision-ingreso" onClick={closeMenu}>Recepción de Mercancia</Link>
                   <span className="hidden md:inline text-gray-400 ml-1">|</span>
 
                 </li>

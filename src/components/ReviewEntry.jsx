@@ -62,7 +62,7 @@ const ReviewEntry = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
-            <h2 className="text-lg font-bold mb-4">REVISIÓN DE INGRESO DE MERCANCÍA</h2>
+            <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Recepción de Mercancia</h2>
             <div className="bg-white p-4 shadow rounded mb-4">
                 <p className="font-bold text-center">IMPORTACIONES DE ORIENTE SA DE CV</p>
                 <p className="text-center text-sm">Local </p>

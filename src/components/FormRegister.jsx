@@ -134,7 +134,7 @@ const FormRegister = () => {
         <>
             <ToastContainer />
             <div className="mx-auto max-w-5xl mt-10 p-5 bg-white shadow-md rounded-md">
-                <Prueba3 />
+                {/* <Prueba3 /> */}
 
                 <h2 className="font-bold text-2xl text-center mb-8">Datos Generales Locatarios</h2>
 

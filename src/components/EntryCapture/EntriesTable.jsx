@@ -4,8 +4,11 @@ import axios from "axios"; // Importar axios para hacer solicitudes HTTP
 
 const EntriesTable = ({ partidas, entradaId, onDelete }) => {
   // Función para manejar la eliminación de una partida
-  const handleDelete = async (PartEntId) => {
+  const handleDelete = async (PartEntId, sku) => {
     try {
+      // Mostrar un cuadro de confirmación
+      const confirmacion = window.confirm(`¿Seguro que deseas eliminar la partida con SKU: ${sku}?`);
+      if (!confirmacion) return; // Si el usuario cancela, no hacer nada
 
       // Validar que entradaId y PartEntId estén definidos
       if (!entradaId || !PartEntId) {
@@ -39,11 +42,8 @@ const EntriesTable = ({ partidas, entradaId, onDelete }) => {
           <tr className="bg-gray-100">
             <th className="px-4 py-2 border border-gray-300">SKU</th>
             <th className="px-4 py-2 border border-gray-300">Descripción</th>
-            <th className="px-4 py-2 border border-gray-300">Costo</th>
             <th className="px-4 py-2 border border-gray-300">Precio</th>
             <th className="px-4 py-2 border border-gray-300">Cantidad</th>
-            <th className="px-4 py-2 border border-gray-300">Verificado</th>
-            <th className="px-4 py-2 border border-gray-300">Observaciones</th>
             <th className="px-4 py-2 border border-gray-300">Acciones</th>
           </tr>
         </thead>
@@ -52,16 +52,11 @@ const EntriesTable = ({ partidas, entradaId, onDelete }) => {
             <tr key={partida.PartEntId} className="hover:bg-gray-50">
               <td className="px-4 py-2 border border-gray-300">{partida.PartEntSKU}</td>
               <td className="px-4 py-2 border border-gray-300">{partida.PartEntProdDesc}</td>
-              <td className="px-4 py-2 border border-gray-300">{partida.PartEntCosto}</td>
               <td className="px-4 py-2 border border-gray-300">{partida.PartEntPrecio}</td>
               <td className="px-4 py-2 border border-gray-300">{partida.PartEntCant}</td>
-              <td className="px-4 py-2 border border-gray-300">
-                {partida.PartEntCheck ? "Sí" : "No"}
-              </td>
-              <td className="px-4 py-2 border border-gray-300">{partida.PartEntObserv}</td>
               <td className="px-4 py-2 border border-gray-300 text-center">
                 <button
-                  onClick={() => handleDelete(partida.PartEntId)} // Solo se pasa PartEntId
+                  onClick={() => handleDelete(partida.PartEntId, partida.PartEntSKU)} // Pasar PartEntId y SKU
                   className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
                 >
                   <FontAwesomeIcon icon={faTrash} />

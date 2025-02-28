@@ -47,7 +47,7 @@ const HomePage = () => {
             <Link to="/revision-ingreso" className="text-lg font-semibold text-indigo-600 hover:text-indigo-700">
               <div className="flex flex-col items-center justify-center bg-gray-100 rounded-lg shadow-xl md:my-3 p-8 hover:bg-gray-300 transition duration-300 hover:scale-105 hover:cursor-pointer md:mx-7 lg:mx-14 sm:mx-1 sm:mt-1 -mx-7">
                 <AiOutlineFileSearch size='60' className="text-indigo-500 mb-4" />
-                Revisión de Ingreso
+                Recepción de Mercancia
               </div>
             </Link>
         )}

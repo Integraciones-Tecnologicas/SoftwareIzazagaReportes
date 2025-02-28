@@ -98,10 +98,8 @@ const CatalogPage = () => {
               <tr>
                 <th className="px-4 py-3 border-b">Descripción</th>
                 <th className="px-4 py-3 border-b">SKU</th>
-                <th className="px-4 py-3 border-b">Costo</th>
                 <th className="px-4 py-3 border-b">Precio</th>
                 <th className="px-4 py-3 border-b">Línea</th>
-                <th className="px-4 py-3 border-b">Subfamilia</th>
                 <th className="px-4 py-3 border-b">Piratería</th>
                 <th className="px-4 py-3 border-b">Imagen</th>
                 <th className="px-4 py-3 border-b">Observaciones</th>
@@ -116,10 +114,8 @@ const CatalogPage = () => {
                 <tr key={index} className="odd:bg-white even:bg-gray-100">
                   <td className="px-4 py-3 border-b">{producto.ProdsDescrip}</td>
                   <td className="px-4 py-3 border-b text-center">{producto.ProdsSKU || "N/A"}</td>
-                  <td className="px-4 py-3 border-b text-center">{producto.ProdsCosto}</td>
                   <td className="px-4 py-3 border-b text-center">{producto.ProdsPrecio1}</td>
-                  <td className="px-4 py-3 border-b">{producto.ProdsLinea}</td>
-                  <td className="px-4 py-3 border-b">{producto.ProdsFamilia}</td>
+                  <td className="px-4 py-3 border-b">{producto.ProdsLinea}</td>                  
                   <td className="px-4 py-3 border-b">{producto.ProdsChek1 ? "Sí" : "No"}</td>
                   <td className="px-4 py-3 border-b">{producto.imagen}</td>
                   <td className="px-4 py-3 border-b">{producto.ProdsObserv || "N/A"}</td>
