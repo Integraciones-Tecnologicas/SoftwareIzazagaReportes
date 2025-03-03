@@ -8,11 +8,10 @@ const Appointment = () => {
   const location = useLocation();
   const { selectedFolio, tipoDuracion, selectedTime } = location.state || {}; // Obtener los datos pasados desde EntryCapture
 
-  const [selectedDate, setSelectedDate] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
   const [availableTimes, setAvailableTimes] = useState([]);
 
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm();
 
   const watchDate = watch("date"); // Observar cambios en la fecha seleccionada
   const watchTime = watch("time"); // Observar cambios en la hora seleccionada
@@ -117,9 +116,8 @@ const Appointment = () => {
           <input
             type="date"
             id="date"
-            className={`block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm ${isDateFullyBooked(selectedDate) ? 'bg-red-200' : ''}`}
+            className={`block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm ${isDateFullyBooked(watchDate) ? 'bg-red-200' : ''}`}
             {...register('date', { required: "La fecha es obligatoria" })}
-            onChange={(e) => setSelectedDate(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
           />
           {errors.date && <ErrorMessage>{errors.date.message}</ErrorMessage>}
