@@ -2,142 +2,107 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation } from "react-router-dom";
 import ErrorMessage from "./ErrorMessage";
-import useStore from "../store/store";
-import EntradasPendientes from "./EntradasPendientes";
+import axios from "axios";
 
 const Appointment = () => {
   const location = useLocation();
-  const selectedFolio = location.state?.selectedFolio; // Obtener el folio seleccionado desde la navegación
+  const { selectedFolio, tipoDuracion, selectedTime } = location.state || {}; // Obtener los datos pasados desde EntryCapture
 
-  const {
-    savedReports,
-    appointments,
-    addAppointment,
-    isTimeAvailable,
-    isFolioUsed,
-    getReportsByCurrentUser,
-    currentUser,
-    completeReport,
-    loadPendingReport,
-  } = useStore();
-
-  const [latestReport, setLatestReport] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
-  const [pendingReports, setPendingReports] = useState([]); // Lista de reportes pendientes
-  const [selectedPendingReport, setSelectedPendingReport] = useState(""); // Reporte pendiente seleccionado
+  const [availableTimes, setAvailableTimes] = useState([]);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, watch } = useForm();
 
-  const folio = latestReport ? latestReport.id : "";
-  const duration = latestReport ? latestReport.selectedTime : "No definido";
-  const selectedDuration = latestReport?.selectedTime || "30 min";
+  const watchDate = watch("date"); // Observar cambios en la fecha seleccionada
+  const watchTime = watch("time"); // Observar cambios en la hora seleccionada
 
-  // Obtener el último reporte del usuario actual y los reportes pendientes
+  // Calcular los horarios disponibles para la fecha seleccionada
   useEffect(() => {
-    const userReports = getReportsByCurrentUser();
-    if (userReports.length > 0) {
-      // Cargar el reporte seleccionado o el último reporte si no hay uno seleccionado
-      const reportToLoad = selectedFolio
-        ? userReports.find((report) => report.id === selectedFolio)
-        : userReports[userReports.length - 1];
-      setLatestReport(reportToLoad);
-      setPendingReports(userReports.filter((report) => report.status === "pendiente")); // Filtrar reportes pendientes
+    if (watchDate) {
+      const times = calculateAvailableTimes(watchDate);
+      setAvailableTimes(times);
     } else {
-      setLatestReport(null);
-      setPendingReports([]);
+      setAvailableTimes([]); // Limpiar los horarios si no hay fecha seleccionada
     }
-  }, [getReportsByCurrentUser, savedReports, selectedFolio]);
-
-  // Cargar un reporte pendiente seleccionado
-  useEffect(() => {
-    if (selectedPendingReport) {
-      loadPendingReport(selectedPendingReport); // Cargar el reporte pendiente seleccionado
-      const report = savedReports.find((r) => r.id === selectedPendingReport && r.status === "pendiente");
-      if (report) {
-        setLatestReport(report); // Establecer el reporte como el último
-      }
-    }
-  }, [selectedPendingReport, savedReports, loadPendingReport]);
+  }, [watchDate]);
 
   // Calcular los horarios disponibles para la fecha seleccionada
   const calculateAvailableTimes = (date) => {
     const allTimes = [];
-    const startHour = 10;
-    const endHour = 18;
-    const durationMap = { "30 min": 30, "1 hora": 60, "2 horas": 120 };
+    const startHour = 10; // Hora de inicio (10:00 AM)
+    const endHour = 18; // Hora de fin (6:00 PM)
 
+    // Generar todos los horarios posibles entre las 10:00 y las 18:00
     for (let hour = startHour; hour < endHour; hour++) {
-      allTimes.push({ hour, minutes: 0 });
-      allTimes.push({ hour, minutes: 30 });
+      allTimes.push({ hour, minutes: 0 }); // Hora en punto (ej. 10:00)
+      allTimes.push({ hour, minutes: 30 }); // Media hora (ej. 10:30)
     }
 
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
+    const isToday = date === now.toISOString().split('T')[0]; // Verificar si la fecha seleccionada es hoy
 
+    // Filtrar los horarios disponibles
     return allTimes.filter(({ hour, minutes }) => {
-      if (date === now.toISOString().split('T')[0] && (hour < currentHour || (hour === currentHour && minutes <= currentMinutes))) {
-        return false;
+      if (isToday) {
+        // Si es hoy, solo mostrar horarios futuros
+        const currentHour = now.getHours();
+        const currentMinutes = now.getMinutes();
+
+        // Si la hora es menor a la actual, descartar
+        if (hour < currentHour) return false;
+
+        // Si es la misma hora, descartar los minutos que ya pasaron
+        if (hour === currentHour && minutes <= currentMinutes) return false;
       }
 
-      const startTime = new Date(2000, 0, 1, hour, minutes);
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + durationMap[selectedDuration]);
-
-      return !appointments.some((appointment) => {
-        if (appointment.userId !== currentUser.id || appointment.date !== date) return false;
-
-        const appointmentStart = new Date(2000, 0, 1, ...appointment.time.split(":").map(Number));
-        const appointmentEnd = new Date(appointmentStart);
-        appointmentEnd.setMinutes(appointmentEnd.getMinutes() + durationMap[appointment.duration]);
-
-        return (
-          (startTime >= appointmentStart && startTime < appointmentEnd) ||
-          (endTime > appointmentStart && endTime <= appointmentEnd) ||
-          (startTime <= appointmentStart && endTime >= appointmentEnd)
-        );
-      });
+      // Si no es hoy, mostrar todos los horarios
+      return true;
     }).map(({ hour, minutes }) => `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
   };
 
   // Verificar si una fecha está completamente reservada
   const isDateFullyBooked = (date) => {
-    const availableTimes = calculateAvailableTimes(date);
-    return availableTimes.length === 0;
+    const times = calculateAvailableTimes(date);
+    return times.length === 0;
+  };
+
+  // Calcular la hora de fin basada en la hora de inicio y la duración
+  const calculateEndTime = (startTime, duration) => {
+    const [hour, minute] = startTime.split(":").map(Number);
+    const durationMap = { "30 min": 30, "1 hora": 60, "2 horas": 120 };
+    const endTime = new Date(2000, 0, 1, hour, minute);
+    endTime.setMinutes(endTime.getMinutes() + durationMap[duration]);
+    return `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
   };
 
   // Registrar una cita
-  const registerAppointment = (data) => {
+  const registerAppointment = async (data) => {
     const { date, time } = data;
 
-    if (!latestReport) {
-      setErrorMessage("No hay un reporte guardado. Por favor, genera un reporte antes de agendar.");
-      return;
+    try {
+      // Llamar a la API para crear la cita
+      const response = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/crear-cita`, {
+        SDTGeneraCita: {
+          CitaId: "0", // Puedes generar un ID único si es necesario
+          LocatarioId: "2", // Usar el ID del locatario
+          CitaFecha: date,
+          CitaHoraInicio: time,
+          CitaHoraFin: calculateEndTime(time, selectedTime), // Calcular la hora de fin
+          CitaTipoDuracion: tipoDuracion, // Tipo de transporte seleccionado
+          CitaUsuarioCheck: "false",
+          FolioRegistro: "", // Usar el folio seleccionado
+          CitaObserv: "Ninguna",
+          EntradaId: selectedFolio, // ID de la entrada pendiente
+        },
+      });
+
+      setErrorMessage('Cita registrada con éxito.');
+      // Aquí puedes redirigir al usuario o mostrar un mensaje de éxito
+    } catch (error) {
+      console.error("Error al crear la cita:", error);
+      setErrorMessage("Hubo un error al crear la cita. Por favor, inténtalo de nuevo.");
     }
-
-    if (!duration) {
-      setErrorMessage("No se ha seleccionado una duración válida.");
-      return;
-    }
-
-    if (isFolioUsed(folio)) {
-      setErrorMessage("Este folio ya ha sido utilizado. Por favor, genera un nuevo reporte.");
-      return;
-    }
-
-    if (!isTimeAvailable(date, time, duration)) {
-      setErrorMessage("Este horario ya está reservado. Por favor, elige otro.");
-      return;
-    }
-
-    setErrorMessage('Cita registrada con éxito.');
-    addAppointment({ date, time, duration, folio });
-    completeReport(folio); // Cambiar el estado del reporte a "completo"
-
-    // Limpiar el campo de folio
-    setLatestReport(null);
-    reset();
   };
 
   return (
@@ -145,50 +110,6 @@ const Appointment = () => {
       <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
         Solicitud de Cita para Ingreso de Mercancía
       </h2>
-
-      {/* Input para seleccionar reportes pendientes */}
-      <EntradasPendientes />
-      {/* <div className="mb-6">
-        <label htmlFor="pendingReports" className="block text-sm font-semibold uppercase">
-          Reportes Pendientes:
-        </label>
-        <select
-          id="pendingReports"
-          value={selectedPendingReport}
-          onChange={(e) => setSelectedPendingReport(e.target.value)}
-          className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
-        >
-          <option value="">Selecciona un reporte pendiente</option>
-          {pendingReports.map((report) => (
-            <option key={report.id} value={report.id}>
-              {report.id} - {report.selectedTime}
-            </option>
-          ))}
-        </select>
-      </div> */}
-
-      <div className="mt-6">
-        <h3 className="text-xl font-semibold">Historial de Citas Reservadas</h3>
-        <ul className="mt-2 border rounded-lg p-3 bg-gray-50">
-          {savedReports.length > 0 ? (
-            savedReports.map((report) => {
-              const appointment = appointments.find((app) => app.folio === report.id);
-
-              return (
-                <li key={report.id} className="p-2 border-b">
-                  <strong>Folio:</strong> {report.id} <br />
-                  <strong>Fecha:</strong> {appointment ? appointment.date : "No definida"} <br />
-                  <strong>Hora:</strong> {appointment ? appointment.time : "No definida"} <br />
-                  <strong>Duración:</strong> {report.selectedTime || "No definida"} <br />
-                  <strong>Estado:</strong> {report.status || "No definido"}
-                </li>
-              );
-            })
-          ) : (
-            <p>No hay reportes guardados.</p>
-          )}
-        </ul>
-      </div>
 
       <form className="space-y-4" onSubmit={handleSubmit(registerAppointment)}>
         <div>
@@ -212,8 +133,8 @@ const Appointment = () => {
             {...register('time', { required: "La hora es obligatoria" })}
           >
             <option value="">Selecciona una hora</option>
-            {calculateAvailableTimes(selectedDate).length > 0 ? (
-              calculateAvailableTimes(selectedDate).map((time) => (
+            {availableTimes.length > 0 ? (
+              availableTimes.map((time) => (
                 <option key={time} value={time}>{time}</option>
               ))
             ) : (
@@ -228,18 +149,17 @@ const Appointment = () => {
           <input
             type="text"
             id="folio"
-            value={folio}
+            value={selectedFolio || "No definido"}
             readOnly
             className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm bg-gray-100"
           />
         </div>
 
-        <div>
-          <label htmlFor="duration" className="block text-sm font-semibold uppercase">Duración:</label>
+        <div className="mb-6 mt-2">
+          <label className="block text-sm font-semibold uppercase">Tipo de Transporte:</label>
           <input
             type="text"
-            id="duration"
-            value={duration}
+            value={selectedTime || "No seleccionado"}
             readOnly
             className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm bg-gray-100"
           />
@@ -249,9 +169,11 @@ const Appointment = () => {
 
         <input
           type="submit"
-          className={`w-full mt-3 p-3 text-white uppercase font-bold ${folio ? "bg-indigo-500 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"}`}
+          className={`w-full mt-3 p-3 text-white uppercase font-bold ${
+            watchDate && watchTime ? "bg-indigo-500 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"
+          }`}
           value='Agendar Cita'
-          disabled={!folio}
+          disabled={!watchDate || !watchTime} // Deshabilitar si no hay fecha y hora seleccionadas
         />
       </form>
     </div>

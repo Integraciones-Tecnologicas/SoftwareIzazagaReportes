@@ -96,24 +96,31 @@ const EntryCapture = () => {
       alert("Este reporte ya está completado. No se puede agendar una cita.");
       return;
     }
-
+  
     if (partidas.length === 0) {
       alert("No hay productos agregados.");
       return;
     }
-
+  
     if (!entradaId) {
       alert("No hay una entrada activa. Agrega al menos un producto antes de agendar.");
       return;
     }
-
+  
     try {
-      // Navegar a la pantalla de agendar cita con el entradaId existente
-      navigate("/agendar-cita", { state: { selectedFolio: entradaId } });
+      // Navegar a la pantalla de agendar cita con el entradaId y tipoDuracion
+      navigate("/agendar-cita", {
+        state: {
+          selectedFolio: entradaId,
+          selectedTime: selectedTime,
+          tipoDuracion: tipoDuracion, // Pasar el tipo de duración
+          partidas: partidas, // Pasar las partidas si es necesario
+        },
+      });
     } catch (error) {
       console.error("Error al agendar cita:", error);
       if (error.response) {
-        console.error("Detalles del error:", error.response.data); // Imprime el cuerpo del error
+        console.error("Detalles del error:", error.response.data);
       }
       alert("Hubo un error al agendar la cita.");
     }

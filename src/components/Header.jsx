@@ -80,7 +80,7 @@ const Header = () => {
             <li className={`${location.pathname !== "/" ? "mx-auto" : "ml-auto"} flex items-center gap-2 bg-indigo-100 text-indigo-600 px-4 py-2 rounded-xl shadow-md`}>
               <FontAwesomeIcon icon={faUser} className="text-indigo-500" />
               <span className="font-bold sm:text-base md:text-xs lg:text-lg w-16 md:w-full">
-                {currentUser.role === "admin" ? "Administrador" : currentUser.nameTenant}
+                {currentUser.role === "admin" ? "Administrador" : currentUser.name}
               </span>
             </li>
           )}

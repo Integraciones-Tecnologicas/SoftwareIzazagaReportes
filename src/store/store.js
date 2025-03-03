@@ -53,65 +53,79 @@ const useStore = create((set, get) => ({
   
 
   // Función para iniciar sesión
-  login: async (email, password)  => {
-
+  login: async (email, password) => {
     const { addInProgressReport, getInProgressReport } = get();
-      
-        // Caso especial: Admin hardcodeado
-        if (email === "admin" && password === "123456") {
+  
+    // Caso especial: Admin hardcodeado
+    if (email === "admin" && password === "123456") {
+      set({
+        currentUser: {
+          id: "admin",
+          name: "Admin",
+          email: "admin",
+          role: "admin", // Asignar el rol de admin
+        },
+      });
+      return true; // Indicar que el inicio de sesión fue exitoso
+    }
+  
+    try {
+      // Autenticación normal: Hacer una solicitud POST al servidor
+      const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ Cuenta: email, Password: password }),
+      });
+  
+      const data = await response.json();
+  
+      // Verificar si el acceso es válido
+      if (data.Acceso === true) {
+        // Obtener el LocatarioId desde la respuesta del login
+        const locatarioId = data.LocatarioId; // Asegúrate de que la respuesta del login incluya este campo
+  
+        if (!locatarioId) {
+          console.error("LocatarioId no está presente en la respuesta del login");
+          return false;
+        }
+  
+        // Obtener los detalles del locatario usando el LocatarioId
+        const locatarioResponse = await fetch(`${import.meta.env.VITE_API_SERVER}/api/locatario/${locatarioId}`);
+        const locatarioData = await locatarioResponse.json();
+  
+        console.log("Respuesta de /api/locatario/:id:", locatarioData);
+  
+        // Si la autenticación es exitosa, establecer el usuario actual
+        const user = {
+          id: data.id || `USER-${Date.now()}`, // Asegurar que el usuario tenga un ID único
+          name: locatarioData.LocatarioNombre, // Usar el nombre del locatario
+          email: email,
+          role: data.role || "user", // Asignar un rol por defecto si no está en la respuesta
+        };
+  
+        set({ currentUser: user });
+  
+        // Recuperar el reporte en progreso del usuario (si es necesario)
+        const inProgressReport = getInProgressReport(user.id);
+        if (inProgressReport) {
           set({
-            currentUser: {
-              id: "admin",
-              name: "Admin",
-              email: "admin",
-              role: "admin", // Asignar el rol de admin
-            },
+            modifiedEntries: inProgressReport.products,
+            selectedTime: inProgressReport.selectedTime,
+            currentFolio: inProgressReport.id,
           });
-          return true; // Indicar que el inicio de sesión fue exitoso
         }
-        try {
-          // Autenticación normal: Hacer una solicitud POST al servidor
-          const response = await fetch(`${import.meta.env.VITE_API_SERVER}/api/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ Cuenta: email, Password: password }),
-          });
-      
-          const data = await response.json();
-      
-          // Verificar si el acceso es válido
-          if (data.Acceso === true) {
-            // Si la autenticación es exitosa, establecer el usuario actual
-            const user = {
-              id: data.id || `USER-${Date.now()}`, // Asegurar que el usuario tenga un ID único
-              name: data.name,
-              email: email,
-              role: data.role || "user", // Asignar un rol por defecto si no está en la respuesta
-            };
-      
-            set({ currentUser: user });
-      
-            // Recuperar el reporte en progreso del usuario (si es necesario)
-            const inProgressReport = getInProgressReport(user.id);
-            if (inProgressReport) {
-              set({
-                modifiedEntries: inProgressReport.products,
-                selectedTime: inProgressReport.selectedTime,
-                currentFolio: inProgressReport.id,
-              });
-            }
-      
-            return true; // Indicar que el inicio de sesión fue exitoso
-          } else {
-            // Si el acceso es inválido, devolver false
-            return false;
-          }
-        } catch (error) {
-          console.error('Error en la autenticación:', error);
-          return false; // Indicar que hubo un error
-        }
+  
+        return true; // Indicar que el inicio de sesión fue exitoso
+      } else {
+        // Si el acceso es inválido, devolver false
+        return false;
+      }
+    } catch (error) {
+      console.error('Error en la autenticación:', error);
+      return false; // Indicar que hubo un error
+    }
   },
 
   // Función para cerrar sesión
