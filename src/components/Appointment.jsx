@@ -6,15 +6,49 @@ import axios from "axios";
 
 const Appointment = () => {
   const location = useLocation();
-  const { selectedFolio, tipoDuracion, selectedTime } = location.state || {}; // Obtener los datos pasados desde EntryCapture
+  const { selectedFolio, tipoDuracion: tipoDuracionFromEntryCapture } = location.state || {}; // Obtener datos pasados desde EntryCapture
 
   const [errorMessage, setErrorMessage] = useState(null);
   const [availableTimes, setAvailableTimes] = useState([]);
+  const [entradasPendientes, setEntradasPendientes] = useState([]); // Lista de entradas pendientes
+  const [selectedEntradaId, setSelectedEntradaId] = useState(selectedFolio || ""); // Entrada pendiente seleccionada
+  const [tipoDuracion, setTipoDuracion] = useState(""); // Tipo de duración seleccionada (en formato de interfaz)
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm();
+  // Mapeo entre los valores de la interfaz y los valores de la base de datos
+  const duracionMap = {
+    "30 min": "A",
+    "1 hora": "B",
+    "2 horas": "C",
+    A: "30 min",
+    B: "1 hora",
+    C: "2 horas",
+  };
+
+  // Convertir el tipo de duración recibido desde EntryCapture al formato de la interfaz
+  useEffect(() => {
+    if (tipoDuracionFromEntryCapture) {
+      setTipoDuracion(duracionMap[tipoDuracionFromEntryCapture] || "");
+    }
+  }, [tipoDuracionFromEntryCapture]);
+
+  const { register, handleSubmit, formState: { errors }, watch } = useForm();
 
   const watchDate = watch("date"); // Observar cambios en la fecha seleccionada
   const watchTime = watch("time"); // Observar cambios en la hora seleccionada
+
+  // Obtener las entradas pendientes al cargar el componente
+  useEffect(() => {
+    const fetchEntradasPendientes = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entradas-pendientes`);
+        setEntradasPendientes(response.data.SDTEntradas); // Almacenar las entradas pendientes en el estado
+      } catch (error) {
+        console.error("Error al obtener las entradas pendientes:", error);
+      }
+    };
+
+    fetchEntradasPendientes();
+  }, []);
 
   // Calcular los horarios disponibles para la fecha seleccionada
   useEffect(() => {
@@ -79,7 +113,20 @@ const Appointment = () => {
   const registerAppointment = async (data) => {
     const { date, time } = data;
 
+    if (!selectedEntradaId) {
+      setErrorMessage("Debes seleccionar una entrada pendiente.");
+      return;
+    }
+
+    if (!tipoDuracion) {
+      setErrorMessage("Debes seleccionar un tipo de duración.");
+      return;
+    }
+
     try {
+      // Convertir el tipo de duración al formato de la base de datos
+      const tipoDuracionBD = duracionMap[tipoDuracion];
+
       // Llamar a la API para crear la cita
       const response = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/crear-cita`, {
         SDTGeneraCita: {
@@ -87,12 +134,12 @@ const Appointment = () => {
           LocatarioId: "2", // Usar el ID del locatario
           CitaFecha: date,
           CitaHoraInicio: time,
-          CitaHoraFin: calculateEndTime(time, selectedTime), // Calcular la hora de fin
-          CitaTipoDuracion: tipoDuracion, // Tipo de transporte seleccionado
+          CitaHoraFin: calculateEndTime(time, tipoDuracion), // Calcular la hora de fin
+          CitaTipoDuracion: tipoDuracionBD, // Tipo de transporte seleccionado (en formato de BD)
           CitaUsuarioCheck: "false",
           FolioRegistro: "", // Usar el folio seleccionado
           CitaObserv: "Ninguna",
-          EntradaId: selectedFolio, // ID de la entrada pendiente
+          EntradaId: selectedEntradaId, // ID de la entrada pendiente
         },
       });
 
@@ -111,6 +158,47 @@ const Appointment = () => {
       </h2>
 
       <form className="space-y-4" onSubmit={handleSubmit(registerAppointment)}>
+        {/* Selector de entradas pendientes */}
+        <div>
+          <label htmlFor="entradasPendientes" className="block text-sm font-semibold uppercase">
+            Entrada Pendiente:
+          </label>
+          <select
+            id="entradasPendientes"
+            value={selectedEntradaId}
+            onChange={(e) => setSelectedEntradaId(e.target.value)}
+            className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
+          >
+            <option value="">Selecciona una entrada pendiente</option>
+            {entradasPendientes.map((entrada) => (
+              <option key={entrada.EntradaId} value={entrada.EntradaId}>
+                {entrada.EntradaId} - {entrada.LocatarioNombre}
+              </option>
+            ))}
+          </select>
+          {!selectedEntradaId && <ErrorMessage>Debes seleccionar una entrada pendiente.</ErrorMessage>}
+        </div>
+
+        {/* Selector de tipo de duración (siempre visible) */}
+        <div>
+          <label htmlFor="tipoDuracion" className="block text-sm font-semibold uppercase">
+            Tipo de Duración:
+          </label>
+          <select
+            id="tipoDuracion"
+            value={tipoDuracion}
+            onChange={(e) => setTipoDuracion(e.target.value)}
+            className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm"
+          >
+            <option value="">Selecciona un tipo de duración</option>
+            <option value="30 min">30 minutos</option>
+            <option value="1 hora">1 hora</option>
+            <option value="2 horas">2 horas</option>
+          </select>
+          {!tipoDuracion && <ErrorMessage>Debes seleccionar un tipo de duración.</ErrorMessage>}
+        </div>
+
+        {/* Selector de fecha */}
         <div>
           <label htmlFor="date" className="block text-sm font-semibold uppercase">Fecha:</label>
           <input
@@ -123,6 +211,7 @@ const Appointment = () => {
           {errors.date && <ErrorMessage>{errors.date.message}</ErrorMessage>}
         </div>
 
+        {/* Selector de hora */}
         <div>
           <label htmlFor="time" className="block text-sm font-semibold uppercase">Hora:</label>
           <select
@@ -142,37 +231,19 @@ const Appointment = () => {
           {errors.time && <ErrorMessage>{errors.time.message}</ErrorMessage>}
         </div>
 
-        <div>
-          <label htmlFor="folio" className="block text-sm font-semibold uppercase">Folio de Registro:</label>
-          <input
-            type="text"
-            id="folio"
-            value={selectedFolio || "No definido"}
-            readOnly
-            className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm bg-gray-100"
-          />
-        </div>
-
-        <div className="mb-6 mt-2">
-          <label className="block text-sm font-semibold uppercase">Tipo de Transporte:</label>
-          <input
-            type="text"
-            value={selectedTime || "No seleccionado"}
-            readOnly
-            className="block w-full mt-1 p-2 border border-gray-500 rounded-md shadow-sm bg-gray-100"
-          />
-        </div>
-
-        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-
+        {/* Botón de envío */}
         <input
           type="submit"
           className={`w-full mt-3 p-3 text-white uppercase font-bold ${
-            watchDate && watchTime ? "bg-indigo-500 hover:bg-indigo-700" : "bg-gray-400 cursor-not-allowed"
+            watchDate && watchTime && selectedEntradaId && tipoDuracion
+              ? "bg-indigo-500 hover:bg-indigo-700"
+              : "bg-gray-400 cursor-not-allowed"
           }`}
           value='Agendar Cita'
-          disabled={!watchDate || !watchTime} // Deshabilitar si no hay fecha y hora seleccionadas
+          disabled={!watchDate || !watchTime || !selectedEntradaId || !tipoDuracion} // Deshabilitar si no hay fecha, hora, entrada o tipo de duración seleccionada
         />
+
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </form>
     </div>
   );

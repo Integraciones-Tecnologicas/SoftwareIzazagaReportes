@@ -112,9 +112,7 @@ const EntryCapture = () => {
       navigate("/agendar-cita", {
         state: {
           selectedFolio: entradaId,
-          selectedTime: selectedTime,
           tipoDuracion: tipoDuracion, // Pasar el tipo de duración
-          partidas: partidas, // Pasar las partidas si es necesario
         },
       });
     } catch (error) {
