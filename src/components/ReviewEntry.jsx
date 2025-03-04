@@ -161,6 +161,10 @@ const ReviewEntry = () => {
                 />
             </div>
 
+            {searchFolio && filteredEntradas.length === 0 && (
+                <p className="text-center text-red-500">No se encontraron entradas con ese folio.</p>
+            )}
+
             {searchFolio && filteredEntradas.length > 0 && (
                 <div className="space-y-4">
                     {filteredEntradas.map((entrada) => (
@@ -279,10 +283,6 @@ const ReviewEntry = () => {
                         </div>
                     )}
                 </div>
-            )}
-
-            {searchFolio && filteredEntradas.length === 0 && (
-                <p className="text-center text-red-500">No se encontraron entradas con ese folio.</p>
             )}
 
             {isModalOpen && (
