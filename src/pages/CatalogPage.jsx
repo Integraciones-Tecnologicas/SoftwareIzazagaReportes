@@ -14,14 +14,20 @@ const CatalogPage = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
-  const currentUser = useStore((state) => state.currentUser);
+  const [searchTerm, setSearchTerm] = useState("");
+  const currentUser = useStore((state) => state.currentUser); // Obtén el usuario actual del store
+  const locatarioId = currentUser?.locatarioId; // Obtén el LocatarioId del usuario actual
 
   // Función para obtener todos los productos
   const fetchProductos = async () => {
     try {
+      // Si el usuario es admin, LocatarioId será 0
+      if (locatarioId === undefined) {
+        throw new Error("No se ha iniciado sesión o no se ha obtenido el LocatarioId.");
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/productos`, {
-        params: { LocatarioId: 0 },
+        params: { LocatarioId: locatarioId }, // Usa el LocatarioId del usuario actual
       });
 
       if (response.data.SDTProds && Array.isArray(response.data.SDTProds)) {
@@ -39,14 +45,19 @@ const CatalogPage = () => {
   // Función para buscar productos por descripción
   const buscarProductosPorDescripcion = async (descripcion) => {
     try {
+      // Si el usuario es admin, LocatarioId será 0
+      if (locatarioId === undefined) {
+        throw new Error("No se ha iniciado sesión o no se ha obtenido el LocatarioId.");
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-productos`, {
-        params: { Locatarioid: 2, Prodsdescrip: descripcion },
+        params: { Locatarioid: locatarioId, Prodsdescrip: descripcion }, // Usa el LocatarioId del usuario actual
       });
 
       if (response.data && response.data.SDTProds && response.data.SDTProds.length > 0) {
-        setProductos(response.data.SDTProds); // Actualizar la lista de productos con los resultados
+        setProductos(response.data.SDTProds);
       } else {
-        setProductos([]); // Limpiar la lista si no hay resultados
+        setProductos([]);
         toast.info("No se encontraron productos con esa descripción.");
       }
     } catch (error) {
@@ -58,13 +69,16 @@ const CatalogPage = () => {
   // Función para manejar la eliminación de un producto
   const handleEliminarProducto = async (sku) => {
     try {
-      const Locatarioid = 2;
+      // Si el usuario es admin, LocatarioId será 0
+      if (locatarioId === undefined) {
+        throw new Error("No se ha iniciado sesión o no se ha obtenido el LocatarioId.");
+      }
 
       const confirmacion = window.confirm(`¿Seguro que deseas eliminar el producto con SKU: ${sku}?`);
       if (!confirmacion) return;
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_SERVER}/api/eliminar-producto?Locatarioid=${Locatarioid}&Prodssku=${sku}`
+        `${import.meta.env.VITE_API_SERVER}/api/eliminar-producto?Locatarioid=${locatarioId}&Prodssku=${sku}` // Usa el LocatarioId del usuario actual
       );
 
       toast.success("Producto eliminado correctamente");
@@ -77,15 +91,17 @@ const CatalogPage = () => {
 
   // Efecto para cargar los productos al montar el componente
   useEffect(() => {
-    fetchProductos();
-  }, []);
+    if (locatarioId !== undefined) {
+      fetchProductos();
+    }
+  }, [locatarioId]);
 
   // Efecto para buscar productos cuando cambia el término de búsqueda
   useEffect(() => {
     if (searchTerm.length > 2) {
       buscarProductosPorDescripcion(searchTerm);
     } else if (searchTerm === "") {
-      fetchProductos(); // Si el campo de búsqueda está vacío, cargar todos los productos
+      fetchProductos();
     }
   }, [searchTerm]);
 

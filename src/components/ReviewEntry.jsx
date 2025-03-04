@@ -18,7 +18,7 @@ const ReviewEntry = () => {
         const fetchEntradasConfirmadas = async () => {
             try {
                 const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entradas-confirmadas`);
-                setEntradasConfirmadas(response.data.SDTEntradas);
+                setEntradasConfirmadas(response.data.SDTEntradaCitas);
             } catch (error) {
                 console.error('Error fetching entradas confirmadas:', error);
             }
@@ -30,7 +30,11 @@ const ReviewEntry = () => {
     const fetchPartidas = async (entradaId) => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entrada/${entradaId}`);
-            setPartidas((prev) => ({ ...prev, [entradaId]: response.data.Part }));
+            const partidasFormateadas = response.data.Part.map((partida) => ({
+                ...partida,
+                PartEntCheck: partida.PartEntCheck?.toString() || "false", // Asegurar que sea un string
+            }));
+            setPartidas((prev) => ({ ...prev, [entradaId]: partidasFormateadas }));
         } catch (error) {
             console.error('Error fetching partidas:', error);
         }
@@ -45,6 +49,7 @@ const ReviewEntry = () => {
 
     const handleSelectEntrada = (entrada) => {
         setSelectedEntrada(entrada);
+        setSearchFolio("");
         toggleExpand(entrada.EntradaId);
     };
 
@@ -61,29 +66,32 @@ const ReviewEntry = () => {
     };
 
     const handleSaveObservaciones = async () => {
-        if (currentPartida) {
-            try {
-                await axios.post(`${import.meta.env.VITE_API_SERVER}/api/actualizar-observaciones`, {
-                    PartEntId: currentPartida.PartEntId,
-                    PartEntObserv: editedObservaciones,
-                });
+        console.log(editedObservaciones);
+        handleCloseModal();
+    };
 
-                setPartidas((prev) => ({
-                    ...prev,
-                    [selectedEntrada.EntradaId]: prev[selectedEntrada.EntradaId].map((partida) =>
-                        partida.PartEntId === currentPartida.PartEntId
-                            ? { ...partida, PartEntObserv: editedObservaciones }
-                            : partida
-                    ),
-                }));
+    const handleToggleCheck = async (partida, isChecked) => {
+        // try {
+        //     await axios.post(`${import.meta.env.VITE_API_SERVER}/api/actualizar-partida`, {
+        //         PartEntId: partida.PartEntId,
+        //         PartEntCheck: isChecked ? "true" : "false",
+        //     });
 
-                toast.success("Observaciones actualizadas correctamente.");
-                handleCloseModal();
-            } catch (error) {
-                console.error("Error al actualizar observaciones:", error);
-                toast.error("Hubo un error al actualizar las observaciones.");
-            }
-        }
+        //     setPartidas((prev) => ({
+        //         ...prev,
+        //         [selectedEntrada.EntradaId]: prev[selectedEntrada.EntradaId].map((p) =>
+        //             p.PartEntId === partida.PartEntId
+        //                 ? { ...p, PartEntCheck: isChecked ? "true" : "false" }
+        //                 : p
+        //         ),
+        //     }));
+
+        //     toast.success(`Partida ${isChecked ? "aceptada" : "rechazada"} correctamente.`);
+        // } catch (error) {
+        //     console.error("Error al actualizar PartEntCheck:", error);
+        //     toast.error("Hubo un error al actualizar el estado de la partida.");
+        // }
+        console.log( isChecked)
     };
 
     const filteredEntradas = entradasConfirmadas.filter(entrada =>
@@ -128,7 +136,7 @@ const ReviewEntry = () => {
                                 <span className="text-sm text-gray-600">{entrada.LocatarioNombre}</span>
                             </div>
                             <div className="text-sm text-gray-500">
-                                Fecha: {entrada.EntradaFechaCap} | Hora: {entrada.EntradaHoraCita}
+                                Fecha: {entrada.EntradaFechaCap} | Hora: {entrada.CitaHoraInicio} - {entrada.CitaHoraFin}
                             </div>
                         </div>
                     ))}
@@ -166,7 +174,7 @@ const ReviewEntry = () => {
                             <tr>
                                 <td className="p-2">{selectedEntrada.LocatarioNombre}</td>
                                 <td className="p-2">{normalizarFechaMX(selectedEntrada.EntradaFechaCap)}</td>
-                                <td className="p-2">{selectedEntrada.EntradaHoraCita}</td>
+                                <td className="p-2">{selectedEntrada.CitaHoraInicio} - {selectedEntrada.CitaHoraFin}</td>
                                 <td className="p-2">{selectedEntrada.EntradaObserv}</td>
                             </tr>
                         </tbody>
@@ -194,13 +202,18 @@ const ReviewEntry = () => {
                                             <td className="p-2">{partida.PartEntCant}</td>
                                             <td className="p-2">(Foto aquí)</td>
                                             <td className="p-2 flex space-x-2">
-                                                <div class="flex flex-col items-center">
-                                                    <label class="relative inline-flex items-center cursor-pointer">
-                                                        <input type="checkbox" value="" class="sr-only peer" />
-                                                        <div class="w-20 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-500 peer-checked:bg-green-600 transition-colors duration-300"></div>
-                                                        <span class="absolute left-1 top-1 bg-white rounded-full w-6 h-6 transition-transform duration-300 transform peer-checked:translate-x-12 shadow-md"></span>
+                                                <div className="flex flex-col items-center">
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={partida.PartEntCheck === "true"}
+                                                            onChange={(e) => handleToggleCheck(partida, e.target.checked)}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <div className="w-20 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-500 peer-checked:bg-green-600 transition-colors duration-300"></div>
+                                                        <span className="absolute left-1 top-1 bg-white rounded-full w-6 h-6 transition-transform duration-300 transform peer-checked:translate-x-12 shadow-md"></span>
                                                     </label>
-                                                    <div class="flex justify-between w-20 mt-2 text-sm text-black">
+                                                    <div className="flex justify-between w-20 mt-2 text-sm text-black">
                                                         <span>No</span>
                                                         <span>Sí</span>
                                                     </div>

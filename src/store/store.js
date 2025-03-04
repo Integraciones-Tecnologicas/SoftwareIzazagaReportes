@@ -64,6 +64,7 @@ const useStore = create((set, get) => ({
           name: "Admin",
           email: "admin",
           role: "admin", // Asignar el rol de admin
+          locatarioId: 0, // Asignar LocatarioId = 0 para el admin
         },
       });
       return true; // Indicar que el inicio de sesión fue exitoso
@@ -84,12 +85,12 @@ const useStore = create((set, get) => ({
       // Verificar si el acceso es válido
       if (data.Acceso === true) {
         // Obtener el LocatarioId desde la respuesta del login
-        const locatarioId = data.LocatarioId; // Asegúrate de que la respuesta del login incluya este campo
+        const locatarioId = data.locatarioId; // Asegúrate de que la respuesta del login incluya este campo
   
-        // if (!locatarioId) {
-        //   console.error("LocatarioId no está presente en la respuesta del login");
-        //   return false;
-        // }
+        if (!locatarioId) {
+          console.error("LocatarioId no está presente en la respuesta del login");
+          return false;
+        }
   
         // Obtener los detalles del locatario usando el LocatarioId
         const locatarioResponse = await fetch(`${import.meta.env.VITE_API_SERVER}/api/locatario/${locatarioId}`);
@@ -103,6 +104,7 @@ const useStore = create((set, get) => ({
           name: locatarioData.LocatarioNombre, // Usar el nombre del locatario
           email: email,
           role: data.role || "user", // Asignar un rol por defecto si no está en la respuesta
+          locatarioId: locatarioId, // Almacenar el LocatarioId en el estado del usuario
         };
   
         set({ currentUser: user });

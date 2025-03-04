@@ -22,11 +22,20 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
 
   const descriptionRef = useRef(null);
 
+  // Obtener el usuario actual y el LocatarioId del store
+  const currentUser = useStore((state) => state.currentUser);
+  const locatarioId = currentUser?.locatarioId; // Obtener el LocatarioId del usuario actual
+  const LocatarioNombre = currentUser?.name;
+
   // Función para buscar productos por SKU
   const buscarProducto = async (sku) => {
     try {
+      if (!locatarioId && locatarioId !== 0) {
+        throw new Error("No se ha iniciado sesión o no se ha obtenido el LocatarioId.");
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-producto`, {
-        params: { Locatarioid: 2, Prodssku: sku },
+        params: { Locatarioid: locatarioId, Prodssku: sku }, // Usar el LocatarioId del usuario actual
       });
 
       // Verificar si la respuesta contiene productos
@@ -83,8 +92,12 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
   // Función para buscar productos por descripción
   const buscarProductoPorDescripcion = async (descripcion) => {
     try {
+      if (!locatarioId && locatarioId !== 0) {
+        throw new Error("No se ha iniciado sesión o no se ha obtenido el LocatarioId.");
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/buscar-productos`, {
-        params: { Locatarioid: 0, Prodsdescrip: descripcion },
+        params: { Locatarioid: locatarioId, Prodsdescrip: descripcion }, // Usar el LocatarioId del usuario actual
       });
 
       // Verificar si la respuesta contiene productos
@@ -181,8 +194,8 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
         if (!entradaIdToUse) {
           const entradaResponse = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/crear-entrada`, {
             SDTEntrada: {
-              LocatarioId: "2", // Asegúrate de que este valor sea correcto
-              LocatarioNombre: "Juanpa", // Nombre del locatario (puede venir del estado global)
+              LocatarioId: locatarioId, // Usar el LocatarioId del estado global
+              LocatarioNombre: LocatarioNombre, // Nombre del locatario (puede venir del estado global)
               EntradaFechaCap: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
               EntradaHoraCita: new Date().getHours()+":"+new Date().getMinutes()+":"+new Date().getSeconds(), // Hora seleccionada por el usuario
               EntradaTipoDuracion: "", // Tipo de duración (puedes ajustar esto)

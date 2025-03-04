@@ -6,6 +6,7 @@ import ErrorMessage from "../ErrorMessage";
 
 const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const locatarioId = currentUser?.locatarioId; // Obtén el LocatarioId del usuario actual
 
   useEffect(() => {
     console.log("useEffect ejecutado. initialData:", initialData);
@@ -24,7 +25,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
     try {
       const productoData = {
         ProdId: initialData?.ProdId || null,  // Solo se envía si es actualización
-        LocatarioId: "2",
+        LocatarioId: locatarioId,
         ProdsSKU: data.sku,
         ProdsDescrip: data.description,
         ProdsLinea: data.line,
