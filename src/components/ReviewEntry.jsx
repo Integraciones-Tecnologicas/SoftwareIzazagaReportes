@@ -2,13 +2,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const ReviewEntry = () => {
     const [entradasConfirmadas, setEntradasConfirmadas] = useState([]);
     const [searchFolio, setSearchFolio] = useState("");
     const [partidas, setPartidas] = useState({});
     const [expandedEntradas, setExpandedEntradas] = useState({});
-    const [selectedEntrada, setSelectedEntrada] = useState(null); // Estado para la entrada seleccionada
+    const [selectedEntrada, setSelectedEntrada] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentPartida, setCurrentPartida] = useState(null);
+    const [editedObservaciones, setEditedObservaciones] = useState("");
 
     useEffect(() => {
         const fetchEntradasConfirmadas = async () => {
@@ -41,7 +45,45 @@ const ReviewEntry = () => {
 
     const handleSelectEntrada = (entrada) => {
         setSelectedEntrada(entrada);
-        toggleExpand(entrada.EntradaId); // Expandir automáticamente al seleccionar
+        toggleExpand(entrada.EntradaId);
+    };
+
+    const handleOpenModal = (partida) => {
+        setCurrentPartida(partida);
+        setEditedObservaciones(partida.PartEntObserv || "");
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setCurrentPartida(null);
+        setEditedObservaciones("");
+    };
+
+    const handleSaveObservaciones = async () => {
+        if (currentPartida) {
+            try {
+                await axios.post(`${import.meta.env.VITE_API_SERVER}/api/actualizar-observaciones`, {
+                    PartEntId: currentPartida.PartEntId,
+                    PartEntObserv: editedObservaciones,
+                });
+
+                setPartidas((prev) => ({
+                    ...prev,
+                    [selectedEntrada.EntradaId]: prev[selectedEntrada.EntradaId].map((partida) =>
+                        partida.PartEntId === currentPartida.PartEntId
+                            ? { ...partida, PartEntObserv: editedObservaciones }
+                            : partida
+                    ),
+                }));
+
+                toast.success("Observaciones actualizadas correctamente.");
+                handleCloseModal();
+            } catch (error) {
+                console.error("Error al actualizar observaciones:", error);
+                toast.error("Hubo un error al actualizar las observaciones.");
+            }
+        }
     };
 
     const filteredEntradas = entradasConfirmadas.filter(entrada =>
@@ -52,7 +94,6 @@ const ReviewEntry = () => {
         const date = new Date(fecha);
         return date.toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' });
     };
-    
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
@@ -62,7 +103,6 @@ const ReviewEntry = () => {
                 <p className="text-center text-sm">Local </p>
             </div>
 
-            {/* Buscador */}
             <div className="mb-4">
                 <label htmlFor="searchFolio" className="block font-semibold">Buscar por folio:</label>
                 <input
@@ -75,7 +115,6 @@ const ReviewEntry = () => {
                 />
             </div>
 
-            {/* Lista de entradas filtradas */}
             {searchFolio && filteredEntradas.length > 0 && (
                 <div className="space-y-4">
                     {filteredEntradas.map((entrada) => (
@@ -96,7 +135,6 @@ const ReviewEntry = () => {
                 </div>
             )}
 
-            {/* Mostrar detalles de la entrada seleccionada */}
             {selectedEntrada && (
                 <div className="w-full bg-white shadow rounded mb-6 mt-6">
                     <table className="w-full">
@@ -134,7 +172,6 @@ const ReviewEntry = () => {
                         </tbody>
                     </table>
 
-                    {/* Mostrar partidas si la entrada está expandida */}
                     {expandedEntradas[selectedEntrada.EntradaId] && (
                         <div className="p-4 bg-gray-50">
                             <h3 className="font-bold mb-2">Partidas</h3>
@@ -146,6 +183,7 @@ const ReviewEntry = () => {
                                         <th className="p-2">Cantidad por Caja</th>
                                         <th className="p-2">Foto</th>
                                         <th className="p-2">Aceptado</th>
+                                        <th className="p-2">Observaciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -156,10 +194,25 @@ const ReviewEntry = () => {
                                             <td className="p-2">{partida.PartEntCant}</td>
                                             <td className="p-2">(Foto aquí)</td>
                                             <td className="p-2 flex space-x-2">
-                                                <label className="relative inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" className="sr-only peer" />
-                                                    <div className="peer outline-none duration-100 after:duration-300 w-28 h-14 bg-blue-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500 after:content-['No'] after:absolute after:outline-none after:h-12 after:w-12 after:bg-white after:top-1 after:left-1 after:flex after:justify-center after:items-center after:text-sky-800 after:font-bold peer-checked:after:translate-x-14 peer-checked:after:content-['Sí'] peer-checked:after:border-white"></div>
-                                                </label>
+                                                <div class="flex flex-col items-center">
+                                                    <label class="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" value="" class="sr-only peer" />
+                                                        <div class="w-20 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-500 peer-checked:bg-green-600 transition-colors duration-300"></div>
+                                                        <span class="absolute left-1 top-1 bg-white rounded-full w-6 h-6 transition-transform duration-300 transform peer-checked:translate-x-12 shadow-md"></span>
+                                                    </label>
+                                                    <div class="flex justify-between w-20 mt-2 text-sm text-black">
+                                                        <span>No</span>
+                                                        <span>Sí</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-2">
+                                                <button
+                                                    onClick={() => handleOpenModal(partida)}
+                                                    className="text-blue-600 hover:text-blue-800 "
+                                                >
+                                                    {partida.PartEntObserv || "Agregar observaciones"}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
@@ -170,9 +223,37 @@ const ReviewEntry = () => {
                 </div>
             )}
 
-            {/* Mensaje si no hay entradas */}
             {searchFolio && filteredEntradas.length === 0 && (
                 <p className="text-center text-red-500">No se encontraron entradas con ese folio.</p>
+            )}
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                        <h3 className="text-lg font-bold mb-4">Editar Observaciones</h3>
+                        <textarea
+                            className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows="4"
+                            value={editedObservaciones}
+                            onChange={(e) => setEditedObservaciones(e.target.value)}
+                            placeholder="Escribe las observaciones aquí..."
+                        />
+                        <div className="flex justify-end mt-4 space-x-2">
+                            <button
+                                onClick={handleCloseModal}
+                                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveObservaciones}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                            >
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

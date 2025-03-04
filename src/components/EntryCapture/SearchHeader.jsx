@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faFile, faEdit } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
@@ -19,6 +19,8 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
   const [update, setUpdate] = useState(false);
   const [searchResults, setSearchResults] = useState([]); // Estado para almacenar los resultados de búsqueda
   const [showDropdown, setShowDropdown] = useState(false); // Estado para controlar el desplegable
+
+  const descriptionRef = useRef(null);
 
   // Función para buscar productos por SKU
   const buscarProducto = async (sku) => {
@@ -197,7 +199,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
           EntradaId: entradaIdToUse,
           PartEntProdId: selectedEntry?.ProdId, // Usar el ID del producto (ProdId) en lugar del SKU
           PartEntCant: formData.quantity, // Cantidad ingresada
-          PartEntCheck: "true", // Puedes ajustar esto según tu lógica
+          PartEntCheck: "false", // Puedes ajustar esto según tu lógica
           PartEntObserv: "Ninguna", // Observaciones (opcional)
         });
   
@@ -224,10 +226,21 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
         useStore.getState().updateModifiedEntries(newEntry);
   
         toast.success("Cantidad agregada correctamente.");
-        setFormData((prevData) => ({
-          ...prevData,
-          quantity: "", // Limpiar el campo de cantidad
-        }));
+  
+        // Limpiar el formulario
+        setFormData({
+          sku: "",
+          description: "",
+          cost: "",
+          price: "",
+          quantity: "",
+        });
+  
+        // Enfocar el campo de descripción
+        if (descriptionRef.current) {
+          descriptionRef.current.focus();
+        }
+  
       } catch (error) {
         console.error("Error al agregar cantidad:", error);
         toast.error("Hubo un error al agregar la cantidad.");
@@ -302,6 +315,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
           className="w-full border border-indigo-700 rounded-lg px-4 py-2"
           value={formData.description}
           onChange={handleInputChange}
+          ref={descriptionRef}
         />
         {/* Desplegable de resultados de búsqueda */}
         {showDropdown && searchResults.length > 0 && (

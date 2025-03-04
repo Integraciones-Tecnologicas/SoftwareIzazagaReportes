@@ -86,10 +86,10 @@ const useStore = create((set, get) => ({
         // Obtener el LocatarioId desde la respuesta del login
         const locatarioId = data.LocatarioId; // Asegúrate de que la respuesta del login incluya este campo
   
-        if (!locatarioId) {
-          console.error("LocatarioId no está presente en la respuesta del login");
-          return false;
-        }
+        // if (!locatarioId) {
+        //   console.error("LocatarioId no está presente en la respuesta del login");
+        //   return false;
+        // }
   
         // Obtener los detalles del locatario usando el LocatarioId
         const locatarioResponse = await fetch(`${import.meta.env.VITE_API_SERVER}/api/locatario/${locatarioId}`);

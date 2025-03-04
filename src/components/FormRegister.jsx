@@ -79,7 +79,6 @@ const FormRegister = () => {
                     UsuPassword: data.password
                 }
                 : {
-                    SDTCuentaLocatario: {
                         LocatarioNombre: data.nameTenant,
                         LocatarioDireccion: data.address,
                         LocatarioEmail: "", // Email vacío como solicitado
@@ -93,7 +92,6 @@ const FormRegister = () => {
                         LocatarioObservacion: data.observ || "",
                         UsuCuenta: data.usuario,
                         UsuPassword: data.password
-                    }
                 };
     
             console.log("Payload enviado:", payload); // Depuración
@@ -229,13 +227,8 @@ const FormRegister = () => {
                                 className="w-full p-3 border border-gray-500 rounded-md"
                                 type="text"
                                 placeholder="Dirección del Locatario"
-                                {...register('address', {
-                                    required: 'La dirección del locatario es Obligatoria'
-                                })}
+                                {...register('address')}
                             />
-                            {errors.address && (
-                                <ErrorMessage>{errors.address?.message}</ErrorMessage>
-                            )}
                         </div>
 
                         <div className="md:col-span-6">
@@ -278,13 +271,8 @@ const FormRegister = () => {
                                 className="w-full p-3 border border-gray-500 rounded-md"
                                 type="text"
                                 placeholder="RFC del Locatario"
-                                {...register('rfc', {
-                                    required: 'El RFC del locatario es Obligatorio'
-                                })}
+                                {...register('rfc')}
                             />
-                            {errors.rfc && (
-                                <ErrorMessage>{errors.rfc?.message}</ErrorMessage>
-                            )}
                         </div>
 
                         <div className="md:col-span-6">
@@ -331,20 +319,11 @@ const FormRegister = () => {
                             >
                                 Locales
                             </label>
-                            <select
+                            <textarea
                                 id="local"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                {...register('local', {
-                                    required: 'Selecciona al menos un local'
-                                })}
-                            >
-                                <option value="">--Seleccione--</option>
-                                <option value="100">100</option>
-                                <option value="200">200</option>
-                            </select>
-                            {errors.local && (
-                                <ErrorMessage>{errors.local?.message}</ErrorMessage>
-                            )}
+                                className="w-full p-3 border border-gray-500 rounded-md"
+                                {...register('local')}
+                            ></textarea>
                         </div>
                     </div>
 
