@@ -342,8 +342,31 @@ const ReviewEntry = () => {
                     </div>
                 </div>
             )}
+
+            {isImageModalOpen && (
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
+                        <h3 className="text-lg font-bold mb-4">Imagen</h3>
+                        <img
+                            src={currentImage}
+                            alt="Imagen expandida"
+                            className="w-full h-auto"
+                        />
+                        <div className="flex justify-end mt-4">
+                            <button
+                                onClick={handleCloseImageModal}
+                                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
 
 export default ReviewEntry;
+
