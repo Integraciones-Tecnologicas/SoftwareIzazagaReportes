@@ -13,6 +13,8 @@ const ReviewEntry = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentPartida, setCurrentPartida] = useState(null);
     const [editedObservaciones, setEditedObservaciones] = useState("");
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [currentImage, setCurrentImage] = useState("");
 
     useEffect(() => {
         const fetchEntradasConfirmadas = async () => {
@@ -66,32 +68,68 @@ const ReviewEntry = () => {
     };
 
     const handleSaveObservaciones = async () => {
-        console.log(editedObservaciones);
-        handleCloseModal();
+        try {
+            // Llamar a la API para actualizar las observaciones
+            const response = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/actualizar-observaciones-partida`, {
+                EntradaId: selectedEntrada.EntradaId,
+                PartEntId: currentPartida.PartEntId,
+                PartEntObserv: editedObservaciones,
+            });
+    
+            // Actualizar el estado local de las partidas
+            setPartidas((prev) => ({
+                ...prev,
+                [selectedEntrada.EntradaId]: prev[selectedEntrada.EntradaId].map((p) =>
+                    p.PartEntId === currentPartida.PartEntId
+                        ? { ...p, PartEntObserv: editedObservaciones }
+                        : p
+                ),
+            }));
+    
+            // Cerrar el modal y mostrar notificación de éxito
+            handleCloseModal();
+            toast.success("Observaciones actualizadas correctamente.");
+        } catch (error) {
+            console.error("Error al actualizar las observaciones:", error);
+            toast.error("Hubo un error al actualizar las observaciones.");
+        }
     };
 
     const handleToggleCheck = async (partida, isChecked) => {
-        // try {
-        //     await axios.post(`${import.meta.env.VITE_API_SERVER}/api/actualizar-partida`, {
-        //         PartEntId: partida.PartEntId,
-        //         PartEntCheck: isChecked ? "true" : "false",
-        //     });
+        try {
+            // Llamar a la API para actualizar el check
+            const response = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/actualizar-check-partida`, {
+                EntradaId: selectedEntrada.EntradaId,
+                PartEntId: partida.PartEntId,
+                partEntCheck: isChecked ? "true" : "false",
+            });
+    
+            // Actualizar el estado local de las partidas
+            setPartidas((prev) => ({
+                ...prev,
+                [selectedEntrada.EntradaId]: prev[selectedEntrada.EntradaId].map((p) =>
+                    p.PartEntId === partida.PartEntId
+                        ? { ...p, PartEntCheck: isChecked ? "true" : "false" }
+                        : p
+                ),
+            }));
+    
+            // Mostrar notificación de éxito
+            toast.success(`Partida ${isChecked ? "aceptada" : "rechazada"} correctamente.`);
+        } catch (error) {
+            console.error("Error al actualizar PartEntCheck:", error);
+            toast.error("Hubo un error al actualizar el estado de la partida.");
+        }
+    };
 
-        //     setPartidas((prev) => ({
-        //         ...prev,
-        //         [selectedEntrada.EntradaId]: prev[selectedEntrada.EntradaId].map((p) =>
-        //             p.PartEntId === partida.PartEntId
-        //                 ? { ...p, PartEntCheck: isChecked ? "true" : "false" }
-        //                 : p
-        //         ),
-        //     }));
+    const handleOpenImageModal = (imageUrl) => {
+        setCurrentImage(imageUrl);
+        setIsImageModalOpen(true);
+    };
 
-        //     toast.success(`Partida ${isChecked ? "aceptada" : "rechazada"} correctamente.`);
-        // } catch (error) {
-        //     console.error("Error al actualizar PartEntCheck:", error);
-        //     toast.error("Hubo un error al actualizar el estado de la partida.");
-        // }
-        console.log( isChecked)
+    const handleCloseImageModal = () => {
+        setIsImageModalOpen(false);
+        setCurrentImage("");
     };
 
     const filteredEntradas = entradasConfirmadas.filter(entrada =>
@@ -200,10 +238,17 @@ const ReviewEntry = () => {
                                             <td className="p-2">{partida.PartEntSKU}</td>
                                             <td className="p-2">{partida.PartEntProdDesc}</td>
                                             <td className="p-2">{partida.PartEntCant}</td>
-                                            <td className="p-2">(Foto aquí)</td>
+                                            <td className="p-2">
+                                                <img
+                                                    src="/prueba.jpg"
+                                                    alt="Foto"
+                                                    className="w-12 h-12 cursor-pointer"
+                                                    onClick={() => handleOpenImageModal('/prueba.jpg')} 
+                                                />
+                                            </td>
                                             <td className="p-2 flex space-x-2">
                                                 <div className="flex flex-col items-center">
-                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                    <label className="relative inAline-flex items-center cursor-pointer">
                                                         <input
                                                             type="checkbox"
                                                             checked={partida.PartEntCheck === "true"}
@@ -238,6 +283,35 @@ const ReviewEntry = () => {
 
             {searchFolio && filteredEntradas.length === 0 && (
                 <p className="text-center text-red-500">No se encontraron entradas con ese folio.</p>
+            )}
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                        <h3 className="text-lg font-bold mb-4">Editar Observaciones</h3>
+                        <textarea
+                            className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows="4"
+                            value={editedObservaciones}
+                            onChange={(e) => setEditedObservaciones(e.target.value)}
+                            placeholder="Escribe las observaciones aquí..."
+                        />
+                        <div className="flex justify-end mt-4 space-x-2">
+                            <button
+                                onClick={handleCloseModal}
+                                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveObservaciones}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                            >
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {isModalOpen && (
