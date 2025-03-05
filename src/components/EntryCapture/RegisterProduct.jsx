@@ -2,10 +2,12 @@ import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
+import useStore from "../../store/store"
 import ErrorMessage from "../ErrorMessage";
 
 const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const currentUser = useStore((state) => state.currentUser); // Obtén el usuario actual del store
   const locatarioId = currentUser?.locatarioId; // Obtén el LocatarioId del usuario actual
 
   useEffect(() => {
@@ -133,6 +135,20 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
             {...register("price", { required: "El precio de venta es obligatorio" })}
           />
           {errors.price && <ErrorMessage>{errors.price.message}</ErrorMessage>}
+        </div>
+
+        {/* Imagen */}
+        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+          <label htmlFor="image" className="w-full md:w-1/4 text-sm font-semibold text-gray-700 uppercase">
+            Imagen:
+          </label>
+          <input
+            type="file"
+            id="image"
+            className="w-full md:w-3/4 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Imagen del producto"
+            {...register("image")}
+          />
         </div>
 
         {/* Línea */}

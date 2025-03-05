@@ -244,10 +244,10 @@ const ReviewEntry = () => {
                                             <td className="p-2">{partida.PartEntCant}</td>
                                             <td className="p-2">
                                                 <img
-                                                    src="/prueba.jpg"
+                                                    src="/prueba1.jpeg"
                                                     alt="Foto"
                                                     className="w-12 h-12 cursor-pointer"
-                                                    onClick={() => handleOpenImageModal('/prueba.jpg')} 
+                                                    onClick={() => handleOpenImageModal('/prueba1.jpeg')} 
                                                 />
                                             </td>
                                             <td className="p-2 flex space-x-2">
@@ -345,7 +345,7 @@ const ReviewEntry = () => {
 
             {isImageModalOpen && (
                 <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
                         <h3 className="text-lg font-bold mb-4">Imagen</h3>
                         <img
                             src={currentImage}
