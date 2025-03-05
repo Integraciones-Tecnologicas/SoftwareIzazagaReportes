@@ -142,42 +142,42 @@ const ReviewEntry = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Recepción de Mercancía</h2>
-            <div className="bg-white p-4 shadow rounded mb-4">
-                <p className="font-bold text-center">IMPORTACIONES DE ORIENTE SA DE CV</p>
-                <p className="text-center text-sm">Local </p>
+        <div className="p-4 bg-gray-100 min-h-screen">
+            <h2 className="text-xl font-bold text-center mb-4 text-gray-800">Recepción de Mercancía</h2>
+            <div className="bg-white p-3 shadow rounded mb-4">
+                <p className="font-bold text-center text-sm">IMPORTACIONES DE ORIENTE SA DE CV</p>
+                <p className="text-center text-xs">Local </p>
             </div>
 
             <div className="mb-4">
-                <label htmlFor="searchFolio" className="block font-semibold">Buscar por folio:</label>
+                <label htmlFor="searchFolio" className="block font-semibold text-sm">Buscar por folio:</label>
                 <input
                     id="searchFolio"
                     type="text"
                     placeholder="Ejemplo: 46"
-                    className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     value={searchFolio}
                     onChange={(e) => setSearchFolio(e.target.value)}
                 />
             </div>
 
             {searchFolio && filteredEntradas.length === 0 && (
-                <p className="text-center text-red-500">No se encontraron entradas con ese folio.</p>
+                <p className="text-center text-red-500 text-sm">No se encontraron entradas con ese folio.</p>
             )}
 
             {searchFolio && filteredEntradas.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-2">
                     {filteredEntradas.map((entrada) => (
                         <div
                             key={entrada.EntradaId}
-                            className="bg-white shadow rounded p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="bg-white shadow rounded p-3 cursor-pointer hover:bg-gray-50 transition-colors"
                             onClick={() => handleSelectEntrada(entrada)}
                         >
                             <div className="flex justify-between items-center">
-                                <span className="font-bold">Folio: {entrada.EntradaId}</span>
-                                <span className="text-sm text-gray-600">{entrada.LocatarioNombre}</span>
+                                <span className="font-bold text-sm">Folio: {entrada.EntradaId}</span>
+                                <span className="text-xs text-gray-600">{entrada.LocatarioNombre}</span>
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs text-gray-500">
                                 Fecha: {entrada.EntradaFechaCap} | Hora: {entrada.CitaHoraInicio} - {entrada.CitaHoraFin}
                             </div>
                         </div>
@@ -186,11 +186,11 @@ const ReviewEntry = () => {
             )}
 
             {selectedEntrada && (
-                <div className="w-full bg-white shadow rounded mb-6 mt-6">
+                <div className="w-full bg-white shadow rounded mb-4 mt-4">
                     <table className="w-full">
                         <thead>
                             <tr className="bg-gray-200 text-left">
-                                <th className="p-2" colSpan="4">
+                                <th className="p-2 text-sm" colSpan="4">
                                     <div className="flex justify-between items-center">
                                         <span>Folio: {selectedEntrada.EntradaId}</span>
                                         <button
@@ -206,80 +206,82 @@ const ReviewEntry = () => {
                                 </th>
                             </tr>
                             <tr className="bg-gray-200 text-left">
-                                <th className="p-2">Locatario</th>
-                                <th className="p-2">Fecha</th>
-                                <th className="p-2">Hora Cita</th>
-                                <th className="p-2">Observaciones</th>
+                                <th className="p-2 text-sm">Locatario</th>
+                                <th className="p-2 text-sm">Fecha</th>
+                                <th className="p-2 text-sm">Hora Cita</th>
+                                <th className="p-2 text-sm">Observaciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td className="p-2">{selectedEntrada.LocatarioNombre}</td>
-                                <td className="p-2">{normalizarFechaMX(selectedEntrada.EntradaFechaCap)}</td>
-                                <td className="p-2">{selectedEntrada.CitaHoraInicio} - {selectedEntrada.CitaHoraFin}</td>
-                                <td className="p-2">{selectedEntrada.EntradaObserv}</td>
+                                <td className="p-2 text-sm">{selectedEntrada.LocatarioNombre}</td>
+                                <td className="p-2 text-sm">{normalizarFechaMX(selectedEntrada.EntradaFechaCap)}</td>
+                                <td className="p-2 text-sm">{selectedEntrada.CitaHoraInicio} - {selectedEntrada.CitaHoraFin}</td>
+                                <td className="p-2 text-sm">{selectedEntrada.EntradaObserv}</td>
                             </tr>
                         </tbody>
                     </table>
 
                     {expandedEntradas[selectedEntrada.EntradaId] && (
-                        <div className="p-4 bg-gray-50">
-                            <h3 className="font-bold mb-2">Partidas</h3>
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="bg-gray-200 text-left">
-                                        <th className="p-2">SKU</th>
-                                        <th className="p-2">Descripción</th>
-                                        <th className="p-2">Cantidad por Caja</th>
-                                        <th className="p-2">Foto</th>
-                                        <th className="p-2">Aceptado</th>
-                                        <th className="p-2">Observaciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {partidas[selectedEntrada.EntradaId]?.map((partida) => (
-                                        <tr key={partida.PartEntId}>
-                                            <td className="p-2">{partida.PartEntSKU}</td>
-                                            <td className="p-2">{partida.PartEntProdDesc}</td>
-                                            <td className="p-2">{partida.PartEntCant}</td>
-                                            <td className="p-2">
-                                                <img
-                                                    src="/prueba1.jpeg"
-                                                    alt="Foto"
-                                                    className="w-12 h-12 cursor-pointer"
-                                                    onClick={() => handleOpenImageModal('/prueba1.jpeg')} 
-                                                />
-                                            </td>
-                                            <td className="p-2 flex space-x-2">
-                                                <div className="flex flex-col items-center">
-                                                    <label className="relative inAline-flex items-center cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={partida.PartEntCheck === "true"}
-                                                            onChange={(e) => handleToggleCheck(partida, e.target.checked)}
-                                                            className="sr-only peer"
-                                                        />
-                                                        <div className="w-20 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-500 peer-checked:bg-green-600 transition-colors duration-300"></div>
-                                                        <span className="absolute left-1 top-1 bg-white rounded-full w-6 h-6 transition-transform duration-300 transform peer-checked:translate-x-12 shadow-md"></span>
-                                                    </label>
-                                                    <div className="flex justify-between w-20 mt-2 text-sm text-black">
-                                                        <span>No</span>
-                                                        <span>Sí</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="p-2">
-                                                <button
-                                                    onClick={() => handleOpenModal(partida)}
-                                                    className="text-blue-600 hover:text-blue-800 "
-                                                >
-                                                    {partida.PartEntObserv || "Agregar observaciones"}
-                                                </button>
-                                            </td>
+                        <div className="p-3 bg-gray-50">
+                            <h3 className="font-bold mb-2 text-sm">Partidas</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="bg-gray-200 text-left">
+                                            <th className="p-2 text-sm">SKU</th>
+                                            <th className="p-2 text-sm">Descripción</th>
+                                            <th className="p-2 text-sm">Cantidad</th>
+                                            <th className="p-2 text-sm">Foto</th>
+                                            <th className="p-2 text-sm">Aceptado</th>
+                                            <th className="p-2 text-sm">Observaciones</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {partidas[selectedEntrada.EntradaId]?.map((partida) => (
+                                            <tr key={partida.PartEntId} className="text-sm">
+                                                <td className="p-2">{partida.PartEntSKU}</td>
+                                                <td className="p-2">{partida.PartEntProdDesc}</td>
+                                                <td className="p-2">{partida.PartEntCant}</td>
+                                                <td className="p-2">
+                                                    <img
+                                                        src="/prueba1.jpeg"
+                                                        alt="Foto"
+                                                        className="w-10 h-10 cursor-pointer"
+                                                        onClick={() => handleOpenImageModal('/prueba1.jpeg')} 
+                                                    />
+                                                </td>
+                                                <td className="p-2">
+                                                    <div className="flex flex-col items-center">
+                                                        <label className="relative inline-flex items-center cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={partida.PartEntCheck === "true"}
+                                                                onChange={(e) => handleToggleCheck(partida, e.target.checked)}
+                                                                className="sr-only peer"
+                                                            />
+                                                            <div className="w-16 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-300"></div>
+                                                            <span className="absolute left-1 top-1 bg-white rounded-full w-4 h-4 transition-transform duration-300 transform peer-checked:translate-x-10 shadow-md"></span>
+                                                        </label>
+                                                        <div className="flex justify-between w-16 mt-1 text-xs text-black">
+                                                            <span>No</span>
+                                                            <span>Sí</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-2">
+                                                    <button
+                                                        onClick={() => handleOpenModal(partida)}
+                                                        className="text-blue-600 hover:text-blue-800 text-sm"
+                                                    >
+                                                        {partida.PartEntObserv || "Agregar observaciones"}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -287,10 +289,10 @@ const ReviewEntry = () => {
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                    <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-md">
                         <h3 className="text-lg font-bold mb-4">Editar Observaciones</h3>
                         <textarea
-                            className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             rows="4"
                             value={editedObservaciones}
                             onChange={(e) => setEditedObservaciones(e.target.value)}
@@ -299,42 +301,13 @@ const ReviewEntry = () => {
                         <div className="flex justify-end mt-4 space-x-2">
                             <button
                                 onClick={handleCloseModal}
-                                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                                className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-600 text-sm"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleSaveObservaciones}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                            >
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-bold mb-4">Editar Observaciones</h3>
-                        <textarea
-                            className="w-full p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows="4"
-                            value={editedObservaciones}
-                            onChange={(e) => setEditedObservaciones(e.target.value)}
-                            placeholder="Escribe las observaciones aquí..."
-                        />
-                        <div className="flex justify-end mt-4 space-x-2">
-                            <button
-                                onClick={handleCloseModal}
-                                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSaveObservaciones}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                                className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 text-sm"
                             >
                                 Guardar
                             </button>
@@ -345,7 +318,7 @@ const ReviewEntry = () => {
 
             {isImageModalOpen && (
                 <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+                    <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-lg">
                         <h3 className="text-lg font-bold mb-4">Imagen</h3>
                         <img
                             src={currentImage}
@@ -355,7 +328,7 @@ const ReviewEntry = () => {
                         <div className="flex justify-end mt-4">
                             <button
                                 onClick={handleCloseImageModal}
-                                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                                className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-600 text-sm"
                             >
                                 Cerrar
                             </button>
@@ -363,10 +336,8 @@ const ReviewEntry = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };
 
 export default ReviewEntry;
-
