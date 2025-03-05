@@ -12,7 +12,7 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-24 px-52"> 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-24 px-28 md:px-56"> 
         {currentUser.role === "admin" && (
           <div className="relative bg-white rounded-2xl shadow-md hover:shadow-lg transition duration-300 hover:scale-105 hover:cursor-pointer w-full lg:w-64 h-56 sm:h-72 md:h-80">
             <Link to="/registro">
