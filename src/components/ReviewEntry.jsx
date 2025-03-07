@@ -14,7 +14,8 @@ const ReviewEntry = () => {
     const [currentPartida, setCurrentPartida] = useState(null);
     const [editedObservaciones, setEditedObservaciones] = useState("");
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-    const [currentImage, setCurrentImage] = useState("");
+    const [currentImage, setCurrentImage] = useState([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
         const fetchEntradasConfirmadas = async () => {
@@ -32,10 +33,19 @@ const ReviewEntry = () => {
     const fetchPartidas = async (entradaId) => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_API_SERVER}/api/entrada/${entradaId}`);
-            const partidasFormateadas = response.data.Part.map((partida) => ({
-                ...partida,
-                PartEntCheck: partida.PartEntCheck?.toString() || "false", // Asegurar que sea un string
-            }));
+            const partidasFormateadas = await Promise.all(
+                response.data.Part.map(async (partida) => {
+                    // Obtener las imágenes del producto
+                    const imagenesResponse = await axios.get(
+                        `${import.meta.env.VITE_API_SERVER}/api/imagenes-producto/${partida.PartEntProdId}`
+                    );
+                    return {
+                        ...partida,
+                        PartEntCheck: partida.PartEntCheck?.toString() || "false", // Asegurar que sea un string
+                        imagenes: imagenesResponse.data, // Agregar las imágenes al objeto de la partida
+                    };
+                })
+            );
             setPartidas((prev) => ({ ...prev, [entradaId]: partidasFormateadas }));
         } catch (error) {
             console.error('Error fetching partidas:', error);
@@ -75,7 +85,7 @@ const ReviewEntry = () => {
                 PartEntId: currentPartida.PartEntId,
                 PartEntObserv: editedObservaciones,
             });
-    
+
             // Actualizar el estado local de las partidas
             setPartidas((prev) => ({
                 ...prev,
@@ -85,7 +95,7 @@ const ReviewEntry = () => {
                         : p
                 ),
             }));
-    
+
             // Cerrar el modal y mostrar notificación de éxito
             handleCloseModal();
             toast.success("Observaciones actualizadas correctamente.");
@@ -103,7 +113,7 @@ const ReviewEntry = () => {
                 PartEntId: partida.PartEntId,
                 partEntCheck: isChecked ? "true" : "false",
             });
-    
+
             // Actualizar el estado local de las partidas
             setPartidas((prev) => ({
                 ...prev,
@@ -113,7 +123,7 @@ const ReviewEntry = () => {
                         : p
                 ),
             }));
-    
+
             // Mostrar notificación de éxito
             toast.success(`Partida ${isChecked ? "aceptada" : "rechazada"} correctamente.`);
         } catch (error) {
@@ -122,14 +132,24 @@ const ReviewEntry = () => {
         }
     };
 
-    const handleOpenImageModal = (imageUrl) => {
-        setCurrentImage(imageUrl);
+    const handleOpenImageModal = (imagenes) => {
+        setCurrentImage(imagenes); // Guardar todas las imágenes
+        setCurrentImageIndex(0); // Empezar desde la primera imagen
         setIsImageModalOpen(true);
     };
 
     const handleCloseImageModal = () => {
         setIsImageModalOpen(false);
-        setCurrentImage("");
+        setCurrentImage([]);
+        setCurrentImageIndex(0);
+    };
+
+    const handleNextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % currentImage.length);
+    };
+
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + currentImage.length) % currentImage.length);
     };
 
     const filteredEntradas = entradasConfirmadas.filter(entrada =>
@@ -244,12 +264,14 @@ const ReviewEntry = () => {
                                                 <td className="p-2">{partida.PartEntProdDesc}</td>
                                                 <td className="p-2">{partida.PartEntCant}</td>
                                                 <td className="p-2">
-                                                    <img
-                                                        src="/prueba1.jpeg"
-                                                        alt="Foto"
-                                                        className="w-10 h-10 cursor-pointer"
-                                                        onClick={() => handleOpenImageModal('/prueba1.jpeg')} 
-                                                    />
+                                                    {partida.imagenes?.length > 0 && (
+                                                        <img
+                                                            src={partida.imagenes[0].ImgProdUrl} // Mostrar la primera imagen
+                                                            alt="Foto del producto"
+                                                            className="w-10 h-10 cursor-pointer"
+                                                            onClick={() => handleOpenImageModal(partida.imagenes)} // Abrir el carrusel de imágenes
+                                                        />
+                                                    )}
                                                 </td>
                                                 <td className="p-2">
                                                     <div className="flex flex-col items-center">
@@ -319,12 +341,30 @@ const ReviewEntry = () => {
             {isImageModalOpen && (
                 <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-lg">
-                        <h3 className="text-lg font-bold mb-4">Imagen</h3>
-                        <img
-                            src={currentImage}
-                            alt="Imagen expandida"
-                            className="w-full h-auto"
-                        />
+                        <h3 className="text-lg font-bold mb-4">Imágenes del Producto</h3>
+                        <div className="relative">
+                            <img
+                                src={currentImage[currentImageIndex].ImgProdUrl}
+                                alt="Imagen del producto"
+                                className="w-full h-auto"
+                            />
+                            {currentImage.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={handlePrevImage}
+                                        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
+                                    >
+                                        &lt;
+                                    </button>
+                                    <button
+                                        onClick={handleNextImage}
+                                        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
+                                    >
+                                        &gt;
+                                    </button>
+                                </>
+                            )}
+                        </div>
                         <div className="flex justify-end mt-4">
                             <button
                                 onClick={handleCloseImageModal}

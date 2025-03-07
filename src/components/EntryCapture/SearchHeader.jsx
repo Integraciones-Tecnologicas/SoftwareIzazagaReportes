@@ -24,7 +24,7 @@ const SearchHeader = ({ toggleModal, entradaId, setEntradaId, fetchEntrada }) =>
 
   // Obtener el usuario actual y el LocatarioId del store
   const currentUser = useStore((state) => state.currentUser);
-  const locatarioId = currentUser?.locatarioId; // Obtener el LocatarioId del usuario actual
+  const locatarioId = currentUser?.locatarioId === 0 ? 2 : currentUser?.locatarioId; // Asignar 2 si locatarioId es 0
   const LocatarioNombre = currentUser?.name;
 
   // Función para buscar productos por SKU

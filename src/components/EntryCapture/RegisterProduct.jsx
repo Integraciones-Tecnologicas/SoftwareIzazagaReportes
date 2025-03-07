@@ -1,33 +1,32 @@
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react"; // Importa useState para manejar la imagen
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import useStore from "../../store/store"
+import useStore from "../../store/store";
 import ErrorMessage from "../ErrorMessage";
 
 const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const currentUser = useStore((state) => state.currentUser); // Obtén el usuario actual del store
-  const locatarioId = currentUser?.locatarioId; // Obtén el LocatarioId del usuario actual
+  const currentUser = useStore((state) => state.currentUser);
+  const locatarioId = currentUser?.locatarioId;
+  const [imageFile, setImageFile] = useState(null); // Estado para almacenar la imagen seleccionada
 
   useEffect(() => {
     console.log("useEffect ejecutado. initialData:", initialData);
-  
+
     if (initialData) {
       reset({
         ...initialData,
-        piracy: Boolean(initialData.piracy), // Asegura que sea true o false
+        piracy: Boolean(initialData.piracy),
       });
     }
   }, [initialData, reset]);
-  
-  
 
   const registerProduct = async (data) => {
     try {
       const productoData = {
-        ProdId: initialData?.ProdId || null,  // Solo se envía si es actualización
-        LocatarioId: locatarioId,
+        ProdId: initialData?.ProdId || "", // Si es una actualización, usa el ProdId existente
+        LocatarioId: locatarioId === 0 ? 2 : locatarioId,
         ProdsSKU: data.sku,
         ProdsDescrip: data.description,
         ProdsLinea: data.line,
@@ -40,23 +39,59 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
         ProdsObserv: data.observations || "Ninguna",
         ProdsExistencia: "0",
       };
-
+  
       console.log("Datos enviados a la API:", productoData);
-
+  
       const endpoint = initialData?.ProdId
         ? `${import.meta.env.VITE_API_SERVER}/api/actualizar-producto`
         : `${import.meta.env.VITE_API_SERVER}/api/crear-producto`;
-
+  
       const response = await axios.post(endpoint, productoData, {
         headers: { "Content-Type": "application/json" },
       });
-
-      console.log("Respuesta de la API:", response.data);
-
+  
+      console.log("Respuesta de la API:", response.data); 
+      console.log("xd", response.data.ProdId); 
+  
+      // Obtener el ProdId dependiendo de si es creación o actualización
+      const prodId = initialData?.ProdId
+        ? response.data.SDTProdG.ProdId // Para actualizar
+        : response.data.ProdId; // Para crear
+  
+      if (!prodId) {
+        throw new Error("No se recibió un ProdId válido de la API.");
+      }
+  
+      // Si hay una imagen seleccionada, subirla y asociarla al producto
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("imagen", imageFile, imageFile.name); // Especificar el nombre y tipo de archivo
+  
+        const imageResponse = await axios.post(
+          `${import.meta.env.VITE_API_SERVER}/api/subir-imagen`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+  
+        console.log("Imagen subida:", imageResponse.data);
+  
+        if (imageResponse.data.object_id) {
+          await axios.post(
+            `${import.meta.env.VITE_API_SERVER}/api/asociar-imagen-producto`,
+            {
+              ProdId: prodId, // Usar el ProdId obtenido de la API
+              FileImage: imageResponse.data.object_id, // Usar el object_id devuelto por la API
+            }
+          );
+        }
+      }
+  
       toast.success(initialData?.ProdId ? "Producto actualizado" : "Producto creado");
       reset();
       toggleModal();
-
+  
       if (onProductCreated) {
         onProductCreated();
       }
@@ -67,6 +102,14 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
       } else {
         toast.error("Error de conexión con la API");
       }
+    }
+  };
+
+  // Función para manejar la selección de la imagen
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file); // Almacenar la imagen seleccionada en el estado
     }
   };
 
@@ -146,8 +189,7 @@ const RegisterProduct = ({ toggleModal, initialData, onProductCreated }) => {
             type="file"
             id="image"
             className="w-full md:w-3/4 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Imagen del producto"
-            {...register("image")}
+            onChange={handleImageChange} // Manejar la selección de la imagen
           />
         </div>
 

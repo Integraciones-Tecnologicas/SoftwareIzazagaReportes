@@ -15,7 +15,7 @@ const Appointment = () => {
   const [selectedEntradaId, setSelectedEntradaId] = useState(selectedFolio || ""); // Entrada pendiente seleccionada
   const [tipoDuracion, setTipoDuracion] = useState(""); // Tipo de duración seleccionada (en formato de interfaz)
   const currentUser = useStore((state) => state.currentUser); // Obtén el usuario actual del store
-  const locatarioId = currentUser?.locatarioId; // Obtén el LocatarioId del usuario actual
+  const locatarioId = currentUser?.locatarioId === 0 ? 2 : currentUser?.locatarioId; // Asignar 2 si locatarioId es 0
 
 
   // Mapeo entre los valores de la interfaz y los valores de la base de datos
@@ -134,7 +134,7 @@ const Appointment = () => {
       // Llamar a la API para crear la cita
       const response = await axios.post(`${import.meta.env.VITE_API_SERVER}/api/crear-cita`, {
         SDTGeneraCita: {
-          CitaId: "0", // Puedes generar un ID único si es necesario
+          CitaId: "", // Puedes generar un ID único si es necesario
           LocatarioId: locatarioId, // Usar el ID del locatario
           CitaFecha: date,
           CitaHoraInicio: time,

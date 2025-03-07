@@ -69,8 +69,10 @@ const CatalogPage = () => {
   // Función para manejar la eliminación de un producto
   const handleEliminarProducto = async (sku) => {
     try {
-      // Si el usuario es admin, LocatarioId será 0
-      if (locatarioId === undefined) {
+      // Si el usuario es admin (LocatarioId = 0), asignamos 2
+      const locatarioIdParaEliminar = locatarioId === 0 ? 2 : locatarioId;
+
+      if (locatarioIdParaEliminar === undefined) {
         throw new Error("No se ha iniciado sesión o no se ha obtenido el LocatarioId.");
       }
 
@@ -78,7 +80,7 @@ const CatalogPage = () => {
       if (!confirmacion) return;
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_SERVER}/api/eliminar-producto?Locatarioid=${locatarioId}&Prodssku=${sku}` // Usa el LocatarioId del usuario actual
+        `${import.meta.env.VITE_API_SERVER}/api/eliminar-producto?Locatarioid=${locatarioIdParaEliminar}&Prodssku=${sku}`
       );
 
       toast.success("Producto eliminado correctamente");
