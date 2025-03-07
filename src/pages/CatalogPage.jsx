@@ -15,6 +15,9 @@ const CatalogPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentProductImages, setCurrentProductImages] = useState([]);
   const currentUser = useStore((state) => state.currentUser); // Obtén el usuario actual del store
   const locatarioId = currentUser?.locatarioId; // Obtén el LocatarioId del usuario actual
 
@@ -31,7 +34,19 @@ const CatalogPage = () => {
       });
 
       if (response.data.SDTProds && Array.isArray(response.data.SDTProds)) {
-        setProductos(response.data.SDTProds);
+        // Obtener las imágenes de cada producto
+        const productosConImagenes = await Promise.all(
+          response.data.SDTProds.map(async (producto) => {
+            const imagenesResponse = await axios.get(
+              `${import.meta.env.VITE_API_SERVER}/api/imagenes-producto/${producto.ProdId}`
+            );
+            return {
+              ...producto,
+              imagenes: imagenesResponse.data, // Agregar las imágenes al objeto del producto
+            };
+          })
+        );
+        setProductos(productosConImagenes);
       } else {
         throw new Error("No se encontraron productos.");
       }
@@ -55,7 +70,19 @@ const CatalogPage = () => {
       });
 
       if (response.data && response.data.SDTProds && response.data.SDTProds.length > 0) {
-        setProductos(response.data.SDTProds);
+        // Obtener las imágenes de cada producto
+        const productosConImagenes = await Promise.all(
+          response.data.SDTProds.map(async (producto) => {
+            const imagenesResponse = await axios.get(
+              `${import.meta.env.VITE_API_SERVER}/api/imagenes-producto/${producto.ProdId}`
+            );
+            return {
+              ...producto,
+              imagenes: imagenesResponse.data, // Agregar las imágenes al objeto del producto
+            };
+          })
+        );
+        setProductos(productosConImagenes);
       } else {
         setProductos([]);
         toast.info("No se encontraron productos con esa descripción.");
@@ -89,6 +116,30 @@ const CatalogPage = () => {
       console.error("Error al eliminar producto:", error);
       toast.error("Error al eliminar el producto");
     }
+  };
+
+  // Función para abrir el modal de imágenes
+  const handleOpenImageModal = (imagenes) => {
+    setCurrentProductImages(imagenes); // Guardar todas las imágenes
+    setCurrentImageIndex(0); // Empezar desde la primera imagen
+    setIsImageModalOpen(true);
+  };
+
+  // Función para cerrar el modal de imágenes
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+    setCurrentProductImages([]);
+    setCurrentImageIndex(0);
+  };
+
+  // Función para navegar a la siguiente imagen
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % currentProductImages.length);
+  };
+
+  // Función para navegar a la imagen anterior
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + currentProductImages.length) % currentProductImages.length);
   };
 
   // Efecto para cargar los productos al montar el componente
@@ -187,7 +238,16 @@ const CatalogPage = () => {
                   <td className="px-4 py-3 border-b text-center">{producto.ProdsPrecio1}</td>
                   <td className="px-4 py-3 border-b">{producto.ProdsLinea}</td>
                   <td className="px-4 py-3 border-b">{producto.ProdsChek1 ? "Sí" : "No"}</td>
-                  <td className="px-4 py-3 border-b">{producto.imagen}</td>
+                  <td className="px-4 py-3 border-b">
+                    {producto.imagenes?.length > 0 && (
+                      <img
+                        src={producto.imagenes[0].ImgProdUrl} // Mostrar la primera imagen
+                        alt="Imagen del producto"
+                        className="w-10 h-10 cursor-pointer"
+                        onClick={() => handleOpenImageModal(producto.imagenes)} // Abrir el modal de imágenes
+                      />
+                    )}
+                  </td>
                   <td className="px-4 py-3 border-b">{producto.ProdsObserv || "N/A"}</td>
                   {currentUser.role === "admin" ? (
                     <td className="px-4 py-3 border-b">{producto.LocatarioId}</td>
@@ -257,6 +317,46 @@ const CatalogPage = () => {
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para mostrar imágenes */}
+      {isImageModalOpen && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-lg">
+            <h3 className="text-lg font-bold mb-4">Imágenes del Producto</h3>
+            <div className="relative">
+              <img
+                src={currentProductImages[currentImageIndex].ImgProdUrl}
+                alt="Imagen del producto"
+                className="w-full h-auto"
+              />
+              {currentProductImages.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePrevImage}
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
+                  >
+                    &lt;
+                  </button>
+                  <button
+                    onClick={handleNextImage}
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700"
+                  >
+                    &gt;
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={handleCloseImageModal}
+                className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-600 text-sm"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
